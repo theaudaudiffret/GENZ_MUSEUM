@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from backend.analyzer import analyze_artwork
+from backend.immersive import generate_immersive
 from backend.narrator import narrate
 from backend.profile import load_profile_text, save_profile
 
@@ -68,6 +69,16 @@ async def narrate_route(request: Request):
     try:
         audio_bytes = narrate(data)
         return Response(content=audio_bytes, media_type="audio/mpeg")
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/immersive")
+async def immersive_route(request: Request):
+    data = await request.json()
+    try:
+        audio_bytes = generate_immersive(data)
+        return Response(content=audio_bytes, media_type="audio/wav")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 

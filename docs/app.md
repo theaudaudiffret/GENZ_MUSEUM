@@ -26,7 +26,7 @@ Application mobile-first : l'utilisateur photographie une œuvre d'art et obtien
 cd frontend && npm run build && cd ..
 
 # 2. Démarrer le serveur (affiche l'URL à ouvrir sur le téléphone)
-python3 backend/server.py
+uv run python3 -m backend.server
 ```
 
 ## Structure du projet

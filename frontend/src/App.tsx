@@ -33,6 +33,8 @@ function resizeImage(file: File): Promise<Blob> {
 }
 
 type NarrateState = 'idle' | 'loading' | 'ready' | 'playing' | 'done' | 'error'
+type AudioMode = 'narrate' | 'immersive'
+const AUDIO_ENDPOINT: Record<AudioMode, string> = { narrate: '/narrate', immersive: '/immersive' }
 
 type State =
   | { status: 'onboarding' }
@@ -46,6 +48,7 @@ export default function App() {
     sessionStorage.getItem(PROFILE_DONE_KEY) ? { status: 'idle' } : { status: 'onboarding' },
   )
   const [narrateState, setNarrateState] = useState<NarrateState>('idle')
+  const [audioMode, setAudioMode] = useState<AudioMode | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -62,17 +65,17 @@ export default function App() {
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data: ArtworkSummary = await res.json()
       setState({ status: 'result', preview, data })
-      prefetchAudio(data)
     } catch (err) {
       setState({ status: 'error', preview, message: (err as Error).message })
     }
   }
 
-  // Charge l'audio en arrière-plan sans le jouer — play() sera appelé par un tap utilisateur
-  async function prefetchAudio(data: ArtworkSummary) {
+  // Charge l'audio choisie en arrière-plan sans la jouer — play() sera appelé par un tap utilisateur
+  async function loadAudio(mode: AudioMode, data: ArtworkSummary) {
+    setAudioMode(mode)
     setNarrateState('loading')
     try {
-      const res = await fetch('/narrate', {
+      const res = await fetch(AUDIO_ENDPOINT[mode], {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -97,10 +100,16 @@ export default function App() {
     setNarrateState('playing')
   }
 
-  function reset() {
+  // Revenir au choix narrateur / scène immersive sans perdre la photo/l'analyse
+  function switchAudioMode() {
     audioRef.current?.pause()
     audioRef.current = null
     setNarrateState('idle')
+    setAudioMode(null)
+  }
+
+  function reset() {
+    switchAudioMode()
     setState({ status: 'idle' })
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -158,7 +167,15 @@ export default function App() {
 
         {/* Result */}
         {state.status === 'result' && (
-          <Result data={state.data} onReset={reset} narrateState={narrateState} onPlay={playAudio} />
+          <Result
+            data={state.data}
+            onReset={reset}
+            narrateState={narrateState}
+            audioMode={audioMode}
+            onChooseAudio={(mode) => loadAudio(mode, state.data)}
+            onSwitchAudio={switchAudioMode}
+            onPlay={playAudio}
+          />
         )}
       </div>
     </div>
@@ -262,33 +279,62 @@ function MultiChoice({
   )
 }
 
-const NARRATE_LABEL: Record<string, string> = {
-  loading: '⏳ Préparation audio…',
-  ready:   '🔊 Écouter le résumé',
-  playing: '🔊 Lecture…',
-  done:    '🔁 Réécouter',
-  error:   '⚠️ Narration indisponible',
+const AUDIO_LABEL: Record<AudioMode, Record<NarrateState, string>> = {
+  narrate: {
+    idle:    '',
+    loading: '⏳ Préparation audio…',
+    ready:   '🔊 Écouter le résumé',
+    playing: '🔊 Lecture…',
+    done:    '🔁 Réécouter',
+    error:   '⚠️ Narration indisponible',
+  },
+  immersive: {
+    idle:    '',
+    loading: '⏳ Préparation de la scène…',
+    ready:   '🎭 Écouter la scène immersive',
+    playing: '🎭 Lecture…',
+    done:    '🔁 Réécouter',
+    error:   '⚠️ Scène indisponible',
+  },
 }
 
 function Result({
-  data, onReset, narrateState, onPlay,
+  data, onReset, narrateState, audioMode, onChooseAudio, onSwitchAudio, onPlay,
 }: {
   data: ArtworkSummary
   onReset: () => void
   narrateState: NarrateState
+  audioMode: AudioMode | null
+  onChooseAudio: (mode: AudioMode) => void
+  onSwitchAudio: () => void
   onPlay: () => void
 }) {
   const canTap = narrateState === 'ready' || narrateState === 'done'
   return (
     <div style={styles.resultWrap}>
-      {narrateState !== 'idle' && (
-        <button
-          style={{ ...styles.audioBtn, opacity: canTap ? 1 : 0.5 }}
-          disabled={!canTap}
-          onClick={onPlay}
-        >
-          {NARRATE_LABEL[narrateState]}
-        </button>
+      {audioMode === null && (
+        <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+          <button style={{ ...styles.audioBtn, flex: 1 }} onClick={() => onChooseAudio('narrate')}>
+            🔊 Le narrateur
+          </button>
+          <button style={{ ...styles.audioBtn, flex: 1 }} onClick={() => onChooseAudio('immersive')}>
+            🎭 Scène immersive
+          </button>
+        </div>
+      )}
+      {audioMode !== null && (
+        <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+          <button
+            style={{ ...styles.audioBtn, flex: 1, opacity: canTap ? 1 : 0.5 }}
+            disabled={!canTap}
+            onClick={onPlay}
+          >
+            {AUDIO_LABEL[audioMode][narrateState]}
+          </button>
+          <button style={{ ...styles.audioBtn, flex: '0 0 auto', padding: '.7rem 1rem' }} onClick={onSwitchAudio}>
+            ↩️
+          </button>
+        </div>
       )}
       <Card label="Titre probable" value={data.titre_probable ?? '—'} large />
       <Card label="Artiste probable" value={data.artiste_probable ?? '—'} large />
@@ -476,20 +522,6 @@ const styles = {
     borderRadius: 20,
     padding: '4px 10px',
     fontSize: '.85rem',
-  },
-  choice: {
-    background: '#2a2a2a',
-    color: '#f0f0f0',
-    border: '1px solid transparent',
-    borderRadius: 20,
-    padding: '6px 12px',
-    fontSize: '.85rem',
-    cursor: 'pointer',
-  },
-  choiceSelected: {
-    background: '#fff',
-    color: '#111',
-    border: '1px solid #fff',
   },
   colorTag: {
     background: '#2a2a2a',

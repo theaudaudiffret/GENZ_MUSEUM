@@ -11,3 +11,6 @@ wheels/
 
 # Secrets
 .env
+
+# Scènes immersives générées
+outputs/

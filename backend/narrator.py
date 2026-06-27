@@ -15,7 +15,7 @@ MAX_MEMORY_ENTRIES = 10
 DEFAULT_VOICE_ID = "XB0fDUnXU5powFXDhCwa"  # Charlotte — multilingue
 
 
-def _generate_narration_text(data: dict) -> str:
+def generate_narration_text(data: dict) -> str:
     system = NARRATION_PROMPT.read_text(encoding="utf-8")
     short_mem = SHORT_TERM_MEMORY.read_text(encoding="utf-8")
     long_mem = LONG_TERM_MEMORY.read_text(encoding="utf-8") if LONG_TERM_MEMORY.exists() else ""
@@ -44,7 +44,7 @@ def _generate_narration_text(data: dict) -> str:
     return response.content[0].text.strip()
 
 
-def _update_short_term_memory(narration_text: str) -> None:
+def update_short_term_memory(narration_text: str) -> None:
     new_entry = f"## {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n{narration_text}\n"
 
     content = SHORT_TERM_MEMORY.read_text(encoding="utf-8")
@@ -60,7 +60,7 @@ def _update_short_term_memory(narration_text: str) -> None:
 
 
 def narrate(data: dict) -> bytes:
-    narration_text = _generate_narration_text(data)
+    narration_text = generate_narration_text(data)
 
     client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
     voice_id = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_VOICE_ID)
@@ -73,6 +73,6 @@ def narrate(data: dict) -> bytes:
     )
     audio = b"".join(audio_iter)
 
-    _update_short_term_memory(narration_text)
+    update_short_term_memory(narration_text)
 
     return audio
