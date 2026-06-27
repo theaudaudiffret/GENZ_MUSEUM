@@ -14,6 +14,7 @@ type Tab = 'camera' | 'achievements'
 
 interface Toast {
   artistName: string
+  museumName: string
   level: string
   isNew: boolean
   color: string
@@ -39,9 +40,10 @@ export default function App() {
     if (toastTimer) clearTimeout(toastTimer)
     setToast({
       artistName: found.artist.name,
+      museumName: found.museum.name,
       level: getLevel(next),
       isNew: prev === 0,
-      color: found.movement.color,
+      color: found.museum.color,
     })
     setToastTimer(setTimeout(() => setToast(null), 3500))
   }
@@ -60,7 +62,10 @@ export default function App() {
           <span style={{ color: toast.color, fontWeight: 700 }}>
             {toast.isNew ? '🎨 Découverte !' : '⬆️ Progression'}
           </span>
-          <span>{toast.artistName}</span>
+          <div style={s.toastText}>
+            <span style={{ fontWeight: 600 }}>{toast.artistName}</span>
+            <span style={{ fontSize: '.72rem', opacity: 0.5 }}>{toast.museumName}</span>
+          </div>
           <span style={{ ...s.toastLevel, background: toast.color + '22', color: toast.color }}>
             {toast.level}
           </span>
@@ -118,8 +123,13 @@ const s = {
     gap: 10,
     fontSize: '.85rem',
     zIndex: 100,
-    whiteSpace: 'nowrap' as const,
     boxShadow: '0 4px 24px rgba(0,0,0,.6)',
+    maxWidth: 'calc(100vw - 32px)',
+  },
+  toastText: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 1,
   },
   toastLevel: {
     padding: '2px 10px',

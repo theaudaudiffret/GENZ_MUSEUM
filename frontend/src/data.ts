@@ -1,5 +1,4 @@
 export const LEVELS = ['Inconnu', 'Novice', 'Initié', 'Amateur d\'art', 'Connaisseur', 'Expert']
-export const SCANS_PER_LEVEL = 1
 export const MAX_SCANS = LEVELS.length - 1 // 5
 
 const PORTRAIT = (id: string) =>
@@ -13,126 +12,115 @@ export interface Artist {
   portrait: string
 }
 
-export interface Movement {
+export interface Museum {
   id: string
   name: string
-  period: string
+  location: string
+  theme: string
   color: string
   icon: string
   artists: Artist[]
 }
 
-export const MOVEMENTS: Movement[] = [
+export const MUSEUMS: Museum[] = [
   {
-    id: 'primitifs-flamands',
-    name: 'Primitifs flamands',
-    period: '1420 – 1510',
-    color: '#7A8C6A',
-    icon: '⛪',
-    artists: [
-      { id: 'jan-van-eyck',           name: 'Jan van Eyck',           dates: '1390–1441', known_for: 'La Vierge du chancelier Rolin',    portrait: PORTRAIT('jan-van-eyck') },
-      { id: 'rogier-van-der-weyden',  name: 'Rogier van der Weyden',  dates: '1400–1464', known_for: 'L\'Annonciation triptyque Miraflores', portrait: PORTRAIT('rogier-van-der-weyden') },
-      { id: 'hans-memling',           name: 'Hans Memling',           dates: '1430–1494', known_for: 'La Vierge à l\'Enfant',           portrait: PORTRAIT('hans-memling') },
-      { id: 'dierick-bouts',          name: 'Dierick Bouts',          dates: '1410–1475', known_for: 'L\'Arrestation du Christ',         portrait: PORTRAIT('dierick-bouts') },
-      { id: 'petrus-christus',        name: 'Petrus Christus',        dates: '1410–1475', known_for: 'Portrait de jeune fille',           portrait: PORTRAIT('petrus-christus') },
-    ],
-  },
-  {
-    id: 'renaissance-italienne',
-    name: 'Renaissance italienne',
-    period: '1400 – 1550',
-    color: '#D4A853',
-    icon: '🌿',
-    artists: [
-      { id: 'leonard-de-vinci', name: 'Léonard de Vinci', dates: '1452–1519', known_for: 'La Joconde',                    portrait: PORTRAIT('leonard-de-vinci') },
-      { id: 'raphael',          name: 'Raphaël',           dates: '1483–1520', known_for: 'La Belle Jardinière',           portrait: PORTRAIT('raphael') },
-      { id: 'titien',           name: 'Titien',             dates: '1490–1576', known_for: 'Le Concert champêtre',          portrait: PORTRAIT('titien') },
-      { id: 'veronese',         name: 'Véronèse',           dates: '1528–1588', known_for: 'Les Noces de Cana',            portrait: PORTRAIT('veronese') },
-      { id: 'fra-angelico',     name: 'Fra Angelico',       dates: '1395–1455', known_for: 'Le Couronnement de la Vierge', portrait: PORTRAIT('fra-angelico') },
-    ],
-  },
-  {
-    id: 'manierisme',
-    name: 'Maniérisme',
-    period: '1520 – 1600',
-    color: '#9B5CA0',
-    icon: '🌀',
-    artists: [
-      { id: 'arcimboldo',       name: 'Arcimboldo',           dates: '1526–1593', known_for: 'Les Quatre Saisons',           portrait: PORTRAIT('arcimboldo') },
-      { id: 'rosso-fiorentino', name: 'Rosso Fiorentino',     dates: '1494–1540', known_for: 'Pietà de Rosso',               portrait: PORTRAIT('rosso-fiorentino') },
-      { id: 'pontormo',         name: 'Pontormo',             dates: '1494–1557', known_for: 'Portrait d\'hallebardier',      portrait: PORTRAIT('pontormo') },
-      { id: 'jean-clouet',      name: 'Jean Clouet',          dates: '1480–1541', known_for: 'Portrait de François Ier',      portrait: PORTRAIT('jean-clouet') },
-      { id: 'primaticcio',      name: 'Primaticcio',          dates: '1504–1570', known_for: 'Ulysse et Pénélope',            portrait: PORTRAIT('primaticcio') },
-    ],
-  },
-  {
-    id: 'baroque-flamand',
-    name: 'Baroque flamand & hollandais',
-    period: '1600 – 1680',
-    color: '#7B6CA8',
-    icon: '🕯️',
-    artists: [
-      { id: 'rembrandt', name: 'Rembrandt',  dates: '1606–1669', known_for: 'Bethsabée au bain',                portrait: PORTRAIT('rembrandt') },
-      { id: 'rubens',    name: 'Rubens',     dates: '1577–1640', known_for: 'Henri IV et Marie de Médicis',    portrait: PORTRAIT('rubens') },
-      { id: 'vermeer',   name: 'Vermeer',    dates: '1632–1675', known_for: 'La Dentellière',                  portrait: PORTRAIT('vermeer') },
-      { id: 'van-dyck',  name: 'Van Dyck',   dates: '1599–1641', known_for: 'Charles Ier d\'Angleterre',       portrait: PORTRAIT('van-dyck') },
-      { id: 'jordaens',  name: 'Jordaens',   dates: '1593–1678', known_for: 'Les Quatre Évangélistes',         portrait: PORTRAIT('jordaens') },
-    ],
-  },
-  {
-    id: 'baroque-classicisme',
-    name: 'Baroque & Classicisme',
-    period: '1600 – 1720',
-    color: '#C06B4A',
+    id: 'louvre',
+    name: 'Musée du Louvre',
+    location: '1er arr.',
+    theme: 'Art ancien · Antiquité–XIXe s.',
+    color: '#C9A84C',
     icon: '🏛️',
     artists: [
-      { id: 'caravage',           name: 'Caravage',              dates: '1571–1610', known_for: 'La Mort de la Vierge',          portrait: PORTRAIT('caravage') },
-      { id: 'poussin',            name: 'Nicolas Poussin',        dates: '1594–1665', known_for: 'Les Bergers d\'Arcadie',        portrait: PORTRAIT('poussin') },
-      { id: 'georges-de-la-tour', name: 'Georges de La Tour',     dates: '1593–1652', known_for: 'Saint Joseph charpentier',     portrait: PORTRAIT('georges-de-la-tour') },
-      { id: 'champaigne',         name: 'Philippe de Champaigne', dates: '1602–1674', known_for: 'Ex-Voto de 1662',              portrait: PORTRAIT('champaigne') },
-      { id: 'claude-lorrain',     name: 'Claude Lorrain',         dates: '1600–1682', known_for: 'Port de mer au soleil couchant', portrait: PORTRAIT('claude-lorrain') },
+      { id: 'leonard-de-vinci', name: 'Léonard de Vinci',    dates: '1452–1519', known_for: 'La Joconde',                    portrait: PORTRAIT('leonard-de-vinci') },
+      { id: 'raphael',          name: 'Raphaël',              dates: '1483–1520', known_for: 'La Belle Jardinière',           portrait: PORTRAIT('raphael') },
+      { id: 'vermeer',          name: 'Vermeer',              dates: '1632–1675', known_for: 'La Dentellière',               portrait: PORTRAIT('vermeer') },
+      { id: 'rembrandt',        name: 'Rembrandt',            dates: '1606–1669', known_for: 'Bethsabée au bain',            portrait: PORTRAIT('rembrandt') },
+      { id: 'rubens',           name: 'Rubens',               dates: '1577–1640', known_for: 'Cycle de Marie de Médicis',    portrait: PORTRAIT('rubens') },
+      { id: 'caravage',         name: 'Caravage',             dates: '1571–1610', known_for: 'La Mort de la Vierge',         portrait: PORTRAIT('caravage') },
+      { id: 'poussin',          name: 'Nicolas Poussin',      dates: '1594–1665', known_for: 'Les Bergers d\'Arcadie',       portrait: PORTRAIT('poussin') },
+      { id: 'david',            name: 'Jacques-Louis David',  dates: '1748–1825', known_for: 'Le Sacre de Napoléon',         portrait: PORTRAIT('david') },
+      { id: 'ingres',           name: 'Ingres',               dates: '1780–1867', known_for: 'La Grande Odalisque',          portrait: PORTRAIT('ingres') },
+      { id: 'delacroix',        name: 'Delacroix',            dates: '1798–1863', known_for: 'Les Femmes d\'Alger',          portrait: PORTRAIT('delacroix') },
     ],
   },
   {
-    id: 'art-espagnol',
-    name: 'Art espagnol du Siècle d\'Or',
-    period: '1580 – 1700',
-    color: '#B5472B',
-    icon: '🌹',
+    id: 'orsay',
+    name: 'Musée d\'Orsay',
+    location: '7e arr.',
+    theme: 'Impressionnisme · 1848–1914',
+    color: '#4E8A6E',
+    icon: '🌿',
     artists: [
-      { id: 'el-greco',   name: 'El Greco',   dates: '1541–1614', known_for: 'Le Christ en croix adoré par deux donateurs', portrait: PORTRAIT('el-greco') },
-      { id: 'velazquez',  name: 'Velázquez',  dates: '1599–1660', known_for: 'Portrait de la reine Marianne d\'Autriche',  portrait: PORTRAIT('velazquez') },
-      { id: 'zurbaran',   name: 'Zurbarán',   dates: '1598–1664', known_for: 'Saint Bonaventure sur son lit de mort',      portrait: PORTRAIT('zurbaran') },
-      { id: 'murillo',    name: 'Murillo',    dates: '1617–1682', known_for: 'L\'Immaculée Conception',                    portrait: PORTRAIT('murillo') },
-      { id: 'ribera',     name: 'José de Ribera', dates: '1591–1652', known_for: 'Le Pied-bot',                           portrait: PORTRAIT('ribera') },
+      { id: 'manet',            name: 'Édouard Manet',        dates: '1832–1883', known_for: 'Olympia',                      portrait: PORTRAIT('manet') },
+      { id: 'monet',            name: 'Claude Monet',         dates: '1840–1926', known_for: 'La Gare Saint-Lazare',         portrait: PORTRAIT('monet') },
+      { id: 'renoir',           name: 'Auguste Renoir',       dates: '1841–1919', known_for: 'Bal du moulin de la Galette',  portrait: PORTRAIT('renoir') },
+      { id: 'degas',            name: 'Edgar Degas',          dates: '1834–1917', known_for: 'La Petite Danseuse',           portrait: PORTRAIT('degas') },
+      { id: 'van-gogh',         name: 'Vincent van Gogh',     dates: '1853–1890', known_for: 'La Nuit étoilée sur le Rhône', portrait: PORTRAIT('van-gogh') },
+      { id: 'gauguin',          name: 'Paul Gauguin',         dates: '1848–1903', known_for: 'Arearea',                      portrait: PORTRAIT('gauguin') },
+      { id: 'cezanne',          name: 'Paul Cézanne',         dates: '1839–1906', known_for: 'Les Joueurs de cartes',        portrait: PORTRAIT('cezanne') },
+      { id: 'seurat',           name: 'Georges Seurat',       dates: '1859–1891', known_for: 'Le Cirque',                    portrait: PORTRAIT('seurat') },
+      { id: 'courbet',          name: 'Gustave Courbet',      dates: '1819–1877', known_for: 'L\'Atelier du peintre',        portrait: PORTRAIT('courbet') },
+      { id: 'toulouse-lautrec', name: 'Toulouse-Lautrec',     dates: '1864–1901', known_for: 'La Clownesse assise',          portrait: PORTRAIT('toulouse-lautrec') },
     ],
   },
   {
-    id: 'rococo-lumieres',
-    name: 'Rococo & Lumières',
-    period: '1700 – 1790',
-    color: '#5B9E8A',
-    icon: '🌸',
+    id: 'pompidou',
+    name: 'Centre Pompidou',
+    location: '4e arr.',
+    theme: 'Art moderne & contemporain · XXe s.',
+    color: '#D44C31',
+    icon: '🎨',
     artists: [
-      { id: 'watteau',       name: 'Watteau',        dates: '1684–1721', known_for: 'Pèlerinage à l\'île de Cythère',  portrait: PORTRAIT('watteau') },
-      { id: 'fragonard',     name: 'Fragonard',      dates: '1732–1806', known_for: 'Le Verrou',                       portrait: PORTRAIT('fragonard') },
-      { id: 'boucher',       name: 'Boucher',        dates: '1703–1770', known_for: 'Diane sortant du bain',           portrait: PORTRAIT('boucher') },
-      { id: 'chardin',       name: 'Chardin',        dates: '1699–1779', known_for: 'La Raie',                         portrait: PORTRAIT('chardin') },
-      { id: 'vigee-le-brun', name: 'Vigée Le Brun',  dates: '1755–1842', known_for: 'Marie-Antoinette à la rose',     portrait: PORTRAIT('vigee-le-brun') },
+      { id: 'matisse',          name: 'Henri Matisse',        dates: '1869–1954', known_for: 'La Tristesse du roi',          portrait: PORTRAIT('matisse') },
+      { id: 'kandinsky',        name: 'Wassily Kandinsky',    dates: '1866–1944', known_for: 'Avec l\'Arc noir',             portrait: PORTRAIT('kandinsky') },
+      { id: 'braque',           name: 'Georges Braque',       dates: '1882–1963', known_for: 'Le Viaduc à l\'Estaque',       portrait: PORTRAIT('braque') },
+      { id: 'leger',            name: 'Fernand Léger',        dates: '1881–1955', known_for: 'La Partie de cartes',          portrait: PORTRAIT('leger') },
+      { id: 'duchamp',          name: 'Marcel Duchamp',       dates: '1887–1968', known_for: 'La Boîte-en-valise',           portrait: PORTRAIT('duchamp') },
+      { id: 'delaunay-r',       name: 'Robert Delaunay',      dates: '1885–1941', known_for: 'La Ville de Paris',            portrait: PORTRAIT('delaunay-r') },
+      { id: 'brancusi',         name: 'Constantin Brancusi',  dates: '1876–1957', known_for: 'La Muse endormie',             portrait: PORTRAIT('brancusi') },
+      { id: 'klein-yves',       name: 'Yves Klein',           dates: '1928–1962', known_for: 'Anthropométrie ANT 82',        portrait: PORTRAIT('klein-yves') },
+      { id: 'miro',             name: 'Joan Miró',            dates: '1893–1983', known_for: 'L\'Étoile matinale',           portrait: PORTRAIT('miro') },
+      { id: 'giacometti',       name: 'Alberto Giacometti',   dates: '1901–1966', known_for: 'L\'Homme qui marche I',        portrait: PORTRAIT('giacometti') },
     ],
   },
   {
-    id: 'neoclassicisme-romantisme',
-    name: 'Néoclassicisme & Romantisme',
-    period: '1780 – 1850',
-    color: '#4A7BC0',
-    icon: '⚡',
+    id: 'orangerie',
+    name: 'Musée de l\'Orangerie',
+    location: '1er arr. · Tuileries',
+    theme: 'École de Paris · Nymphéas de Monet',
+    color: '#9B7A52',
+    icon: '🌊',
     artists: [
-      { id: 'david',     name: 'Jacques-Louis David', dates: '1748–1825', known_for: 'Le Sacre de Napoléon',            portrait: PORTRAIT('david') },
-      { id: 'ingres',    name: 'Ingres',               dates: '1780–1867', known_for: 'La Grande Odalisque',            portrait: PORTRAIT('ingres') },
-      { id: 'delacroix', name: 'Delacroix',            dates: '1798–1863', known_for: 'La Liberté guidant le peuple',   portrait: PORTRAIT('delacroix') },
-      { id: 'gericault', name: 'Géricault',            dates: '1791–1824', known_for: 'Le Radeau de la Méduse',         portrait: PORTRAIT('gericault') },
-      { id: 'gros',      name: 'Antoine-Jean Gros',    dates: '1771–1835', known_for: 'Bonaparte au pont d\'Arcole',    portrait: PORTRAIT('gros') },
+      { id: 'monet-nlg',        name: 'Claude Monet',         dates: '1840–1926', known_for: 'Les Nymphéas (salles ovales)', portrait: PORTRAIT('monet-nlg') },
+      { id: 'modigliani',       name: 'Amedeo Modigliani',    dates: '1884–1920', known_for: 'Portrait de Paul Guillaume',   portrait: PORTRAIT('modigliani') },
+      { id: 'soutine',          name: 'Chaïm Soutine',        dates: '1893–1943', known_for: 'La Pâtissière',               portrait: PORTRAIT('soutine') },
+      { id: 'derain',           name: 'André Derain',         dates: '1880–1954', known_for: 'Arlequin et Pierrot',         portrait: PORTRAIT('derain') },
+      { id: 'utrillo',          name: 'Maurice Utrillo',      dates: '1883–1955', known_for: 'La Rue Norvins',              portrait: PORTRAIT('utrillo') },
+      { id: 'laurencin',        name: 'Marie Laurencin',      dates: '1883–1956', known_for: 'Groupe de femmes',            portrait: PORTRAIT('laurencin') },
+      { id: 'vlaminck',         name: 'Maurice de Vlaminck',  dates: '1876–1958', known_for: 'La Maison à Chatou',          portrait: PORTRAIT('vlaminck') },
+      { id: 'rousseau-h',       name: 'Henri Rousseau',       dates: '1844–1910', known_for: 'La Carriole du père Juniet',  portrait: PORTRAIT('rousseau-h') },
+      { id: 'picasso-org',      name: 'Pablo Picasso',        dates: '1881–1973', known_for: 'Grande Baigneuse (coll. Guillaume)', portrait: PORTRAIT('picasso-org') },
+      { id: 'sisley',           name: 'Alfred Sisley',        dates: '1839–1899', known_for: 'L\'Inondation à Port-Marly',  portrait: PORTRAIT('sisley') },
+    ],
+  },
+  {
+    id: 'fondation-louis-vuitton',
+    name: 'Fondation Louis Vuitton',
+    location: '16e arr. · Bois de Boulogne',
+    theme: 'Art contemporain · XXIe s.',
+    color: '#4A6FA5',
+    icon: '✨',
+    artists: [
+      { id: 'basquiat',         name: 'Jean-Michel Basquiat', dates: '1960–1988', known_for: 'Untitled (1982)',              portrait: PORTRAIT('basquiat') },
+      { id: 'rothko',           name: 'Mark Rothko',          dates: '1903–1970', known_for: 'No. 14, 1960',                portrait: PORTRAIT('rothko') },
+      { id: 'richter',          name: 'Gerhard Richter',      dates: '1932–',     known_for: 'Lesende',                     portrait: PORTRAIT('richter') },
+      { id: 'hockney',          name: 'David Hockney',        dates: '1937–',     known_for: 'A Bigger Splash',             portrait: PORTRAIT('hockney') },
+      { id: 'boltanski',        name: 'Christian Boltanski',  dates: '1944–2021', known_for: 'Les Archives du cœur',        portrait: PORTRAIT('boltanski') },
+      { id: 'koons',            name: 'Jeff Koons',           dates: '1955–',     known_for: 'Balloon Dog (Blue)',          portrait: PORTRAIT('koons') },
+      { id: 'kapoor',           name: 'Anish Kapoor',         dates: '1954–',     known_for: 'Non-Object (Spire)',          portrait: PORTRAIT('kapoor') },
+      { id: 'kelly-e',          name: 'Ellsworth Kelly',      dates: '1923–2015', known_for: 'Blue Green Red',              portrait: PORTRAIT('kelly-e') },
+      { id: 'turrell',          name: 'James Turrell',        dates: '1943–',     known_for: 'Mushroom (lumière)',          portrait: PORTRAIT('turrell') },
+      { id: 'prince-r',         name: 'Richard Prince',       dates: '1949–',     known_for: 'Nurse Paintings',             portrait: PORTRAIT('prince-r') },
     ],
   },
 ]
@@ -141,16 +129,16 @@ export function getLevel(scans: number): string {
   return LEVELS[Math.min(scans, MAX_SCANS)]
 }
 
-export function getArtistById(id: string): { artist: Artist; movement: Movement } | null {
-  for (const m of MOVEMENTS) {
+export function getArtistById(id: string): { artist: Artist; museum: Museum } | null {
+  for (const m of MUSEUMS) {
     const a = m.artists.find((a) => a.id === id)
-    if (a) return { artist: a, movement: m }
+    if (a) return { artist: a, museum: m }
   }
   return null
 }
 
-export function movementProgress(movementId: string, scans: Record<string, number>): number {
-  const m = MOVEMENTS.find((m) => m.id === movementId)
+export function museumProgress(museumId: string, scans: Record<string, number>): number {
+  const m = MUSEUMS.find((m) => m.id === museumId)
   if (!m) return 0
   const total = m.artists.reduce((sum, a) => sum + Math.min(scans[a.id] ?? 0, MAX_SCANS), 0)
   return total / (m.artists.length * MAX_SCANS)

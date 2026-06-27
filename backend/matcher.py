@@ -1,55 +1,61 @@
 import unicodedata
 
-# Aliases normalisés pour chaque artist_id
 ARTIST_ALIASES: dict[str, list[str]] = {
-    # Primitifs flamands
-    "jan-van-eyck":          ["jan van eyck", "van eyck", "eyck", "hubert van eyck"],
-    "rogier-van-der-weyden": ["rogier van der weyden", "weyden", "rogier de la pasture", "van der weyden"],
-    "hans-memling":          ["hans memling", "memling", "memlinc"],
-    "dierick-bouts":         ["dierick bouts", "dirk bouts", "bouts"],
-    "petrus-christus":       ["petrus christus", "christus"],
-    # Renaissance italienne
-    "leonard-de-vinci":      ["léonard de vinci", "leonard de vinci", "leonardo da vinci", "da vinci", "vinci", "léonard"],
-    "raphael":               ["raphaël", "raphael", "raffaello", "sanzio"],
-    "titien":                ["titien", "tiziano", "titian", "vecellio"],
-    "veronese":              ["véronèse", "veronese", "paolo caliari"],
-    "fra-angelico":          ["fra angelico", "fra' angelico", "angelico", "guido di pietro"],
-    # Maniérisme
-    "arcimboldo":            ["arcimboldo", "giuseppe arcimboldo"],
-    "rosso-fiorentino":      ["rosso fiorentino", "rosso", "giovanni battista di jacopo"],
-    "pontormo":              ["pontormo", "jacopo pontormo", "jacopo da pontormo", "carucci"],
-    "jean-clouet":           ["jean clouet", "clouet", "janet"],
-    "primaticcio":           ["primaticcio", "francesco primaticcio", "il bologna"],
-    # Baroque flamand & hollandais
-    "rembrandt":             ["rembrandt", "rembrandt van rijn", "van rijn"],
-    "rubens":                ["rubens", "peter paul rubens", "pieter paul"],
-    "vermeer":               ["vermeer", "johannes vermeer", "jan vermeer"],
-    "van-dyck":              ["van dyck", "anthony van dyck", "dyck"],
-    "jordaens":              ["jordaens", "jacob jordaens"],
-    # Baroque & classicisme
-    "caravage":              ["caravage", "caravaggio", "merisi"],
-    "poussin":               ["poussin", "nicolas poussin"],
-    "georges-de-la-tour":    ["georges de la tour", "de la tour", "la tour"],
-    "champaigne":            ["champaigne", "philippe de champaigne"],
-    "claude-lorrain":        ["claude lorrain", "lorrain", "claude gellée", "gellée"],
-    # Art espagnol
-    "el-greco":              ["el greco", "greco", "doménikos theotokópoulos", "theotokopoulos"],
-    "velazquez":             ["velázquez", "velazquez", "diego velázquez", "diego velazquez"],
-    "zurbaran":              ["zurbarán", "zurbaran", "francisco de zurbarán"],
-    "murillo":               ["murillo", "bartolomé esteban murillo", "esteban murillo"],
-    "ribera":                ["ribera", "josé de ribera", "jose de ribera", "lo spagnoletto"],
-    # Rococo & Lumières
-    "watteau":               ["watteau", "antoine watteau", "jean-antoine watteau"],
-    "fragonard":             ["fragonard", "jean-honoré fragonard"],
-    "boucher":               ["boucher", "françois boucher"],
-    "chardin":               ["chardin", "jean-baptiste-siméon chardin", "siméon chardin"],
-    "vigee-le-brun":         ["vigée le brun", "vigee le brun", "élisabeth vigée", "lebrun"],
-    # Néoclassicisme & Romantisme
-    "david":                 ["david", "jacques-louis david", "louis david"],
-    "ingres":                ["ingres", "jean-auguste-dominique ingres", "dominique ingres"],
-    "delacroix":             ["delacroix", "eugène delacroix", "eugene delacroix"],
-    "gericault":             ["géricault", "gericault", "théodore géricault"],
-    "gros":                  ["gros", "antoine-jean gros", "baron gros"],
+    # ── Louvre ────────────────────────────────────────────────────────────────
+    "leonard-de-vinci":   ["léonard de vinci", "leonard de vinci", "leonardo da vinci", "da vinci", "vinci", "léonard"],
+    "raphael":            ["raphaël", "raphael", "raffaello", "sanzio", "raffaello sanzio"],
+    "vermeer":            ["vermeer", "johannes vermeer", "jan vermeer"],
+    "rembrandt":          ["rembrandt", "rembrandt van rijn", "van rijn"],
+    "rubens":             ["rubens", "peter paul rubens", "pieter paul rubens"],
+    "caravage":           ["caravage", "caravaggio", "merisi", "michelangelo merisi"],
+    "poussin":            ["poussin", "nicolas poussin"],
+    "david":              ["david", "jacques-louis david", "louis david"],
+    "ingres":             ["ingres", "jean-auguste-dominique ingres", "dominique ingres"],
+    "delacroix":          ["delacroix", "eugène delacroix", "eugene delacroix"],
+    # ── Orsay ─────────────────────────────────────────────────────────────────
+    "manet":              ["manet", "edouard manet", "édouard manet"],
+    "monet":              ["monet", "claude monet"],
+    "renoir":             ["renoir", "pierre-auguste renoir", "auguste renoir"],
+    "degas":              ["degas", "edgar degas"],
+    "van-gogh":           ["van gogh", "vincent van gogh", "gogh", "van gogh vincent"],
+    "gauguin":            ["gauguin", "paul gauguin"],
+    "cezanne":            ["cézanne", "cezanne", "paul cézanne", "paul cezanne"],
+    "seurat":             ["seurat", "georges seurat"],
+    "courbet":            ["courbet", "gustave courbet"],
+    "toulouse-lautrec":   ["toulouse-lautrec", "lautrec", "henri de toulouse-lautrec", "toulouse lautrec"],
+    # ── Centre Pompidou ───────────────────────────────────────────────────────
+    "matisse":            ["matisse", "henri matisse"],
+    "kandinsky":          ["kandinsky", "wassily kandinsky", "vassily kandinsky"],
+    "braque":             ["braque", "georges braque"],
+    "leger":              ["léger", "leger", "fernand léger", "fernand leger"],
+    "duchamp":            ["duchamp", "marcel duchamp"],
+    "delaunay-r":         ["robert delaunay", "delaunay", "r. delaunay"],
+    "brancusi":           ["brancusi", "constantin brancusi"],
+    "klein-yves":         ["yves klein", "klein"],
+    "miro":               ["miró", "miro", "joan miró", "joan miro"],
+    "giacometti":         ["giacometti", "alberto giacometti"],
+    # ── Orangerie ─────────────────────────────────────────────────────────────
+    "monet-nlg":          ["nymphéas", "nympheéas", "nympheas"],  # identified via artwork title
+    "modigliani":         ["modigliani", "amedeo modigliani"],
+    "soutine":            ["soutine", "chaïm soutine", "chaim soutine"],
+    "derain":             ["derain", "andré derain", "andre derain"],
+    "utrillo":            ["utrillo", "maurice utrillo"],
+    "laurencin":          ["laurencin", "marie laurencin"],
+    "vlaminck":           ["vlaminck", "de vlaminck", "maurice de vlaminck", "maurice vlaminck"],
+    "rousseau-h":         ["henri rousseau", "le douanier", "douanier rousseau", "rousseau le douanier", "le douanier rousseau"],
+    "picasso-org":        ["picasso", "pablo picasso"],
+    "sisley":             ["sisley", "alfred sisley"],
+    # ── Fondation Louis Vuitton ───────────────────────────────────────────────
+    "basquiat":           ["basquiat", "jean-michel basquiat"],
+    "rothko":             ["rothko", "mark rothko"],
+    "richter":            ["richter", "gerhard richter"],
+    "hockney":            ["hockney", "david hockney"],
+    "boltanski":          ["boltanski", "christian boltanski"],
+    "koons":              ["koons", "jeff koons"],
+    "kapoor":             ["kapoor", "anish kapoor"],
+    "kelly-e":            ["ellsworth kelly"],
+    "turrell":            ["turrell", "james turrell"],
+    "prince-r":           ["richard prince"],
 }
 
 
