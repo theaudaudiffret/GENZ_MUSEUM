@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageI from './PageI'
 import PageII from './PageII'
+import PageBiblio from './PageBiblio'
 import { getArtistById, getLevel, MAX_SCANS } from './data'
 
 const PROGRESS_KEY = 'genz-museum-progress'
@@ -10,7 +11,7 @@ function getProgress(): Record<string, number> {
   catch { return {} }
 }
 
-type Tab = 'camera' | 'achievements'
+type Tab = 'camera' | 'achievements' | 'library'
 
 interface Toast {
   artistName: string
@@ -51,9 +52,9 @@ export default function App() {
   return (
     <div style={s.root}>
       <div style={s.scrollArea}>
-        {tab === 'camera'
-          ? <PageI onArtistFound={handleArtistFound} />
-          : <PageII />}
+        {tab === 'camera' && <PageI onArtistFound={handleArtistFound} />}
+        {tab === 'achievements' && <PageII />}
+        {tab === 'library' && <PageBiblio />}
       </div>
 
       {/* Toast notification */}
@@ -75,6 +76,7 @@ export default function App() {
       {/* Tab bar */}
       <nav style={s.tabBar}>
         <TabBtn icon="📷" label="Scanner" active={tab === 'camera'} onClick={() => setTab('camera')} />
+        <TabBtn icon="📚" label="Bibliothèque" active={tab === 'library'} onClick={() => setTab('library')} />
         <TabBtn icon="🏆" label="Collection" active={tab === 'achievements'} onClick={() => setTab('achievements')} />
       </nav>
     </div>

@@ -25,6 +25,8 @@ ANALYSES_DIR = ROOT / "analyses"
 ANALYSES_DIR.mkdir(exist_ok=True)
 AUDIO_DIR = ANALYSES_DIR / "audio"
 AUDIO_DIR.mkdir(exist_ok=True)
+PHOTOS_DIR = ANALYSES_DIR / "photos"
+PHOTOS_DIR.mkdir(exist_ok=True)
 
 SHORT_TERM_MEMORY = ROOT / "docs" / "short_term_memory.md"
 LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
@@ -71,6 +73,7 @@ async def analyze(file: UploadFile = File(...)):
         result["artist_id"] = match_artist(result.get("artiste_probable"))
         result["_phash"] = phash
         _save(result)
+        (PHOTOS_DIR / f"{phash}.jpg").write_bytes(image_bytes)
         payload = {k: v for k, v in result.items() if k != "_phash"}
         payload["from_cache"] = False
         return JSONResponse(payload)
@@ -133,6 +136,43 @@ def _find_cached(phash: str) -> dict | None:
         except Exception:
             continue
     return None
+
+
+@app.get("/library")
+async def library_route():
+    items = []
+    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            phash = data.get("_phash")
+            if not phash:
+                continue
+            items.append({
+                "phash": phash,
+                "titre": data.get("titre_probable"),
+                "artiste": data.get("artiste_probable"),
+                "has_photo": (PHOTOS_DIR / f"{phash}.jpg").exists(),
+                "has_audio": (AUDIO_DIR / f"{phash}.mp3").exists(),
+            })
+        except Exception:
+            continue
+    return JSONResponse(items)
+
+
+@app.get("/photos/{phash}")
+async def get_photo(phash: str):
+    f = PHOTOS_DIR / f"{phash}.jpg"
+    if not f.exists():
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return Response(content=f.read_bytes(), media_type="image/jpeg")
+
+
+@app.get("/audio/{phash}")
+async def get_audio(phash: str):
+    f = AUDIO_DIR / f"{phash}.mp3"
+    if not f.exists():
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return Response(content=f.read_bytes(), media_type="audio/mpeg")
 
 
 def _find_phash_for_data(data: dict) -> str | None:
