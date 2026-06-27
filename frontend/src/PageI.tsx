@@ -3,7 +3,6 @@ import type { ArtworkSummary, VisitorProfile } from './types'
 
 const MAX_PX = 1600
 const JPEG_QUALITY = 0.85
-const PROFILE_DONE_KEY = 'genz-museum-profile-done'
 
 const AGE_OPTIONS = ['Enfant (-12 ans)', 'Ado (12-17 ans)', 'Adulte (18-64 ans)', 'Senior (65 ans et +)']
 const LEVEL_OPTIONS = ['Novice', 'Amateur', 'Expert']
@@ -32,7 +31,7 @@ function resizeImage(file: File): Promise<Blob> {
   })
 }
 
-type NarrateState = 'idle' | 'loading' | 'ready' | 'playing' | 'done' | 'error'
+type NarrateState = 'idle' | 'loading' | 'ready' | 'playing' | 'paused' | 'done' | 'error'
 
 type State =
   | { status: 'onboarding' }
@@ -42,9 +41,7 @@ type State =
   | { status: 'error'; preview: string; message: string }
 
 export default function PageI({ onArtistFound }: { onArtistFound: (id: string) => void }) {
-  const [state, setState] = useState<State>(() =>
-    sessionStorage.getItem(PROFILE_DONE_KEY) ? { status: 'idle' } : { status: 'onboarding' },
-  )
+  const [state, setState] = useState<State>({ status: 'onboarding' })
   const [narrateState, setNarrateState] = useState<NarrateState>('idle')
   const inputRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -60,6 +57,7 @@ export default function PageI({ onArtistFound }: { onArtistFound: (id: string) =
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data: ArtworkSummary = await res.json()
       if (data.artist_id && !data.from_cache) onArtistFound(data.artist_id)
+      setNarrateState('idle')
       setState({ status: 'result', preview, data })
       prefetchAudio(data)
     } catch (err) {
@@ -87,11 +85,16 @@ export default function PageI({ onArtistFound }: { onArtistFound: (id: string) =
     }
   }
 
-  function playAudio() {
+  function toggleAudio() {
     if (!audioRef.current) return
-    audioRef.current.currentTime = 0
-    audioRef.current.play()
-    setNarrateState('playing')
+    if (narrateState === 'playing') {
+      audioRef.current.pause()
+      setNarrateState('paused')
+    } else {
+      if (narrateState === 'done') audioRef.current.currentTime = 0
+      audioRef.current.play()
+      setNarrateState('playing')
+    }
   }
 
   function reset() {
@@ -144,7 +147,7 @@ export default function PageI({ onArtistFound }: { onArtistFound: (id: string) =
       )}
 
       {state.status === 'result' && (
-        <Result data={state.data} onReset={reset} narrateState={narrateState} onPlay={playAudio} />
+        <Result data={state.data} onReset={reset} narrateState={narrateState} onPlay={toggleAudio} />
       )}
     </div>
   )
@@ -165,7 +168,6 @@ function Onboarding({ onDone }: { onDone: () => void }) {
     try {
       await fetch('/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profile) })
     } finally {
-      sessionStorage.setItem(PROFILE_DONE_KEY, '1')
       onDone()
     }
   }
@@ -221,8 +223,9 @@ function MultiChoice({ label, options, values, onToggle }: {
 
 const NARRATE_LABEL: Record<string, string> = {
   loading: '⏳ Préparation audio…',
-  ready: '🔊 Écouter le résumé',
-  playing: '🔊 Lecture…',
+  ready: '▶ Écouter le résumé',
+  playing: '⏸ Pause',
+  paused: '▶ Reprendre',
   done: '🔁 Réécouter',
   error: '⚠️ Narration indisponible',
 }
@@ -230,7 +233,7 @@ const NARRATE_LABEL: Record<string, string> = {
 function Result({ data, onReset, narrateState, onPlay }: {
   data: ArtworkSummary; onReset: () => void; narrateState: NarrateState; onPlay: () => void
 }) {
-  const canTap = narrateState === 'ready' || narrateState === 'done'
+  const canTap = narrateState === 'ready' || narrateState === 'playing' || narrateState === 'paused' || narrateState === 'done'
   return (
     <div style={s.col}>
       {narrateState !== 'idle' && (
