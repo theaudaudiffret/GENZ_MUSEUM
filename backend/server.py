@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
+import cv2
+import numpy as np
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Request, UploadFile
@@ -56,10 +58,18 @@ async def analyze(file: UploadFile = File(...)):
     image_bytes = await file.read()
     media_type = file.content_type or "image/jpeg"
     try:
+        phash = _phash(image_bytes)
+        cached = _find_cached(phash)
+        if cached:
+            payload = {k: v for k, v in cached.items() if k != "_phash"}
+            return JSONResponse(payload)
+
         result = analyze_artwork(image_bytes, media_type, load_profile_text())
         result["artist_id"] = match_artist(result.get("artiste_probable"))
+        result["_phash"] = phash
         _save(result)
-        return JSONResponse(result)
+        payload = {k: v for k, v in result.items() if k != "_phash"}
+        return JSONResponse(payload)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -72,6 +82,43 @@ async def narrate_route(request: Request):
         return Response(content=audio_bytes, media_type="audio/mpeg")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+def _phash(image_bytes: bytes) -> str:
+    """Perceptual hash (64-bit DCT) — same painting ≈ hamming distance ≤ 10."""
+    try:
+        arr = np.frombuffer(image_bytes, dtype=np.uint8)
+        img = cv2.imdecode(arr, cv2.IMREAD_GRAYSCALE)
+    except Exception:
+        img = None
+    if img is None:
+        return "0" * 16
+    img = cv2.resize(img, (32, 32), interpolation=cv2.INTER_AREA).astype(np.float32)
+    dct = cv2.dct(img)
+    block = dct[:8, :8].flatten()
+    mean = block.mean()
+    bits = (block > mean)
+    val = int("".join("1" if b else "0" for b in bits), 2)
+    return f"{val:016x}"
+
+
+def _hamming(a: str, b: str) -> int:
+    return bin(int(a, 16) ^ int(b, 16)).count("1")
+
+
+PHASH_THRESHOLD = 10  # bits différents tolérés sur 64
+
+
+def _find_cached(phash: str) -> dict | None:
+    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            stored = data.get("_phash")
+            if stored and _hamming(phash, stored) <= PHASH_THRESHOLD:
+                return data
+        except Exception:
+            continue
+    return None
 
 
 def _save(result: dict) -> None:
