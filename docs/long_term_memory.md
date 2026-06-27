@@ -1,3 +1,6 @@
-# Mémoire long terme
+# Mémoire long terme — Profil du visiteur
 
-_(alimentée depuis une source externe)_
+- Tranche d'âge : Enfant (-12 ans)
+- Niveau en art : Novice
+- Centres d'intérêt : Anecdotes insolites
+- Ton souhaité : Ludique et accessible

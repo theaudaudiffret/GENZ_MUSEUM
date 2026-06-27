@@ -1,25 +1,8 @@
 # Mémoire court terme — visites récentes
 
-## 2026-06-27 19:10
+## 2026-06-27 19:39
 
-**Titre** : La Liberté guidant le peuple  
-**Artiste** : Eugène Delacroix  
-**Style** : Romantisme  
-**Époque** : 1830 (XIXe siècle)  
-**Ambiance** : Héroïque, dramatique et exaltante, mêlant violence du combat et idéal de liberté  
+Eh bien, te voilà devant la dame la plus célèbre du monde entier : la Joconde ! Regarde bien son sourire... Tu vois, on dirait qu'elle sourit, mais pas tout à fait ! Personne, même les plus grands savants, n'a réussi à deviner si elle est contente, taquine ou un peu rêveuse. Et je te lance un défi : déplace-toi doucement vers la gauche, puis vers la droite. Tu as remarqué ? On dirait que ses yeux te suivent partout !
 
-## 2026-06-27 19:10
+Et voici l'anecdote la plus dingue : ce tableau, peint par Léonard de Vinci il y a plus de cinq cents ans, est tout petit, à peine plus grand qu'une serviette de table ! Difficile à croire pour une star pareille, non ?
 
-**Titre** : La Joconde (Mona Lisa)  
-**Artiste** : Léonard de Vinci  
-**Style** : Renaissance italienne  
-**Époque** : Début du XVIe siècle (vers 1503-1519)  
-**Ambiance** : Mystérieuse, sereine et contemplative, empreinte d'une douceur intemporelle  
-
-## 2026-06-27 19:32
-
-**Titre** : La Joconde (Mona Lisa)  
-**Artiste** : Léonard de Vinci  
-**Style** : Renaissance italienne  
-**Époque** : Début du XVIe siècle (vers 1503-1519)  
-**Ambiance** : Sereine, mystérieuse et contemplative  
