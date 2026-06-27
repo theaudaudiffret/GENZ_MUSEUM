@@ -15,24 +15,22 @@ MAX_MEMORY_ENTRIES = 10
 DEFAULT_VOICE_ID = "XB0fDUnXU5powFXDhCwa"  # Charlotte — multilingue
 
 
-def _generate_narration_text(data: dict, visitor_profile: str | None = None) -> str:
+def _generate_narration_text(data: dict) -> str:
     system = NARRATION_PROMPT.read_text(encoding="utf-8")
     short_mem = SHORT_TERM_MEMORY.read_text(encoding="utf-8")
     long_mem = LONG_TERM_MEMORY.read_text(encoding="utf-8") if LONG_TERM_MEMORY.exists() else ""
-
-    profile_section = f"\n## Profil du visiteur\n\n{visitor_profile}\n" if visitor_profile else ""
 
     user_content = f"""## Analyse de l'œuvre
 
 ```json
 {json.dumps(data, ensure_ascii=False, indent=2)}
 ```
-{profile_section}
+
 ## Mémoire court terme (visites récentes)
 
 {short_mem}
 
-## Mémoire long terme
+## Mémoire long terme (profil du visiteur)
 
 {long_mem}"""
 
@@ -61,8 +59,8 @@ def _update_short_term_memory(narration_text: str) -> None:
     SHORT_TERM_MEMORY.write_text(header + "\n\n".join(entries) + "\n", encoding="utf-8")
 
 
-def narrate(data: dict, visitor_profile: str | None = None) -> bytes:
-    narration_text = _generate_narration_text(data, visitor_profile)
+def narrate(data: dict) -> bytes:
+    narration_text = _generate_narration_text(data)
 
     client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
     voice_id = os.getenv("ELEVENLABS_VOICE_ID", DEFAULT_VOICE_ID)

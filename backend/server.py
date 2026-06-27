@@ -1,5 +1,6 @@
 import json
 import socket
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -20,7 +21,25 @@ ROOT = Path(__file__).parent.parent
 ANALYSES_DIR = ROOT / "analyses"
 ANALYSES_DIR.mkdir(exist_ok=True)
 
-app = FastAPI()
+SHORT_TERM_MEMORY = ROOT / "docs" / "short_term_memory.md"
+LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
+
+SHORT_TERM_INITIAL = "# Mémoire court terme — visites récentes\n\n_(vide — les œuvres analysées apparaîtront ici au fil de la visite)_\n"
+LONG_TERM_INITIAL = "# Mémoire long terme\n\n_(sera remplie après le questionnaire de bienvenue)_\n"
+
+
+def _reset_memories() -> None:
+    SHORT_TERM_MEMORY.write_text(SHORT_TERM_INITIAL, encoding="utf-8")
+    LONG_TERM_MEMORY.write_text(LONG_TERM_INITIAL, encoding="utf-8")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _reset_memories()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
@@ -47,7 +66,7 @@ async def analyze(file: UploadFile = File(...)):
 async def narrate_route(request: Request):
     data = await request.json()
     try:
-        audio_bytes = narrate(data, load_profile_text())
+        audio_bytes = narrate(data)
         return Response(content=audio_bytes, media_type="audio/mpeg")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
