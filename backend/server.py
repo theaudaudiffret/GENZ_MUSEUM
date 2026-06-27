@@ -23,6 +23,8 @@ load_dotenv()
 ROOT = Path(__file__).parent.parent
 ANALYSES_DIR = ROOT / "analyses"
 ANALYSES_DIR.mkdir(exist_ok=True)
+AUDIO_DIR = ANALYSES_DIR / "audio"
+AUDIO_DIR.mkdir(exist_ok=True)
 
 SHORT_TERM_MEMORY = ROOT / "docs" / "short_term_memory.md"
 LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
@@ -62,6 +64,7 @@ async def analyze(file: UploadFile = File(...)):
         cached = _find_cached(phash)
         if cached:
             payload = {k: v for k, v in cached.items() if k != "_phash"}
+            payload["from_cache"] = True
             return JSONResponse(payload)
 
         result = analyze_artwork(image_bytes, media_type, load_profile_text())
@@ -69,6 +72,7 @@ async def analyze(file: UploadFile = File(...)):
         result["_phash"] = phash
         _save(result)
         payload = {k: v for k, v in result.items() if k != "_phash"}
+        payload["from_cache"] = False
         return JSONResponse(payload)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -78,7 +82,17 @@ async def analyze(file: UploadFile = File(...)):
 async def narrate_route(request: Request):
     data = await request.json()
     try:
+        phash = _find_phash_for_data(data)
+        if phash:
+            audio_file = AUDIO_DIR / f"{phash}.mp3"
+            if audio_file.exists():
+                return Response(content=audio_file.read_bytes(), media_type="audio/mpeg")
+
         audio_bytes = narrate(data)
+
+        if phash:
+            (AUDIO_DIR / f"{phash}.mp3").write_bytes(audio_bytes)
+
         return Response(content=audio_bytes, media_type="audio/mpeg")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -106,7 +120,7 @@ def _hamming(a: str, b: str) -> int:
     return bin(int(a, 16) ^ int(b, 16)).count("1")
 
 
-PHASH_THRESHOLD = 10  # bits différents tolérés sur 64
+PHASH_THRESHOLD = 8  # bits différents tolérés sur 64
 
 
 def _find_cached(phash: str) -> dict | None:
@@ -116,6 +130,21 @@ def _find_cached(phash: str) -> dict | None:
             stored = data.get("_phash")
             if stored and _hamming(phash, stored) <= PHASH_THRESHOLD:
                 return data
+        except Exception:
+            continue
+    return None
+
+
+def _find_phash_for_data(data: dict) -> str | None:
+    titre = data.get("titre_probable")
+    artiste = data.get("artiste_probable")
+    if not titre or not artiste:
+        return None
+    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
+        try:
+            j = json.loads(path.read_text(encoding="utf-8"))
+            if j.get("titre_probable") == titre and j.get("artiste_probable") == artiste:
+                return j.get("_phash")
         except Exception:
             continue
     return None

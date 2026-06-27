@@ -16,4 +16,5 @@ export interface ArtworkSummary {
   ambiance: string
   sujets: string[]
   artist_id: string | null
+  from_cache: boolean
 }

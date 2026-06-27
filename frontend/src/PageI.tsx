@@ -59,7 +59,7 @@ export default function PageI({ onArtistFound }: { onArtistFound: (id: string) =
       const res = await fetch('/analyze', { method: 'POST', body: form })
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data: ArtworkSummary = await res.json()
-      if (data.artist_id) onArtistFound(data.artist_id)
+      if (data.artist_id && !data.from_cache) onArtistFound(data.artist_id)
       setState({ status: 'result', preview, data })
       prefetchAudio(data)
     } catch (err) {
