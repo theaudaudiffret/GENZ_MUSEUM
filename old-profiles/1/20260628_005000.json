@@ -1,0 +1,23 @@
+{
+  "titre_probable": "The Mona Lisa (La Gioconda)",
+  "artiste_probable": "Leonardo da Vinci",
+  "style": "Renaissance (High Renaissance)",
+  "epoque": "Around 1503-1519, early 16th century",
+  "technique": "Oil on a poplar wood panel",
+  "description": "This is one of the most famous paintings in the whole world! It shows a woman sitting calmly with her hands gently folded over each other. She has a soft, mysterious smile that seems to change depending on how you look at it. She is wearing dark clothes and a thin veil over her dark hair. Behind her you can see a dreamy landscape with winding roads, a river, misty mountains and bridges that fade into the distance. Long ago, Leonardo da Vinci used a special blurry technique called 'sfumato' to make the edges soft, like a gentle fog. This painting now lives in a famous museum in Paris called the Louvre, where millions of people come to see it every year!",
+  "couleurs_dominantes": [
+    "green",
+    "brown",
+    "golden yellow",
+    "dark olive",
+    "black"
+  ],
+  "ambiance": "Calm, gentle and a little bit mysterious, like the woman is keeping a happy secret with her famous smile.",
+  "sujets": [
+    "portrait",
+    "landscape",
+    "female figure"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "bc82402c0220002c"
+}

@@ -1,0 +1,24 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois (peuplier)",
+  "description": "Voici la peinture la plus célèbre du monde ! On y voit une dame assise, les mains tranquillement posées l'une sur l'autre. Elle nous regarde avec un petit sourire mystérieux : on dirait qu'elle a un secret ! Derrière elle, il y a un beau paysage avec des montagnes, des chemins et une rivière qui se perd au loin. Le peintre Léonard de Vinci était très malin : il a utilisé une technique magique appelée le 'sfumato' pour rendre les contours doux comme un nuage. Sais-tu que ce tableau a vraiment été VOLÉ en 1911 ? Un homme l'a caché sous son manteau et est sorti du musée du Louvre ! Heureusement, on l'a retrouvé. Aujourd'hui, des millions de personnes viennent la voir derrière une vitre spéciale.",
+  "couleurs_dominantes": [
+    "brun",
+    "ocre",
+    "vert",
+    "doré",
+    "bleu-gris"
+  ],
+  "ambiance": "Calme, mystérieuse et un peu magique, comme si la dame allait te confier un secret",
+  "sujets": [
+    "portrait",
+    "paysage",
+    "femme",
+    "Renaissance"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "a9c0d420908080c0"
+}

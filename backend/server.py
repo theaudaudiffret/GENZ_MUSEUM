@@ -1,7 +1,8 @@
+import asyncio
 import json
-import shutil
 import socket
-from datetime import datetime
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 import cv2
@@ -14,32 +15,123 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from backend.analyzer import analyze_artwork
+from backend.dedup import find_existing_artwork
 from backend.matcher import match_artist
 from backend.narrator import narrate
-from backend.profile import load_profile_text, save_profile
+from backend.profile import load_persona, load_profile_text, save_profile
 
 load_dotenv()
 
 ROOT = Path(__file__).parent.parent
 ANALYSES_DIR = ROOT / "analyses"
 ANALYSES_DIR.mkdir(exist_ok=True)
-OLD_PROFILES_DIR = ROOT / "old-profiles"
-AUDIO_DIR = ANALYSES_DIR / "audio"
-AUDIO_DIR.mkdir(exist_ok=True)
-PHOTOS_DIR = ANALYSES_DIR / "photos"
-PHOTOS_DIR.mkdir(exist_ok=True)
 
 SHORT_TERM_MEMORY = ROOT / "docs" / "short_term_memory.md"
 LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
+SESSION_FILE = ROOT / "docs" / "session.json"
 
-SHORT_TERM_INITIAL = "# Mémoire court terme — visites récentes\n\n_(vide — les œuvres analysées apparaîtront ici au fil de la visite)_\n"
-LONG_TERM_INITIAL = "# Mémoire long terme\n\n_(sera remplie après le questionnaire de bienvenue)_\n"
+SHORT_TERM_INITIAL = "# Short-term memory — recent visits\n\n_(empty — analyzed works will appear here during the visit)_\n"
+LONG_TERM_INITIAL = "# Long-term memory\n\n_(will be filled after the welcome questionnaire)_\n"
 
 
-def _reset_memories() -> None:
+# ─── Base de données par persona (cache partagé, persistant) ──────────────────
+
+def _persona_dir(persona: str) -> Path:
+    d = ANALYSES_DIR / persona
+    (d / "audio").mkdir(parents=True, exist_ok=True)
+    (d / "photos").mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _db_entries(pdir: Path) -> list[dict]:
+    entries = []
+    for path in pdir.glob("*.json"):
+        try:
+            d = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if d.get("_key"):
+            entries.append({
+                "key": d["_key"],
+                "titre_probable": d.get("titre_probable"),
+                "artiste_probable": d.get("artiste_probable"),
+                "style": d.get("style"),
+                "epoque": d.get("epoque"),
+            })
+    return entries
+
+
+# ─── Session utilisateur ───────────────────────────────────────────────────────
+
+def _session() -> list[dict]:
+    if SESSION_FILE.exists():
+        try:
+            return json.loads(SESSION_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+    return []
+
+
+def _session_add(entry: dict) -> None:
+    s = _session()
+    s.append(entry)
+    SESSION_FILE.write_text(json.dumps(s, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _reset_session_and_memories() -> None:
+    SESSION_FILE.write_text("[]", encoding="utf-8")
     SHORT_TERM_MEMORY.write_text(SHORT_TERM_INITIAL, encoding="utf-8")
     LONG_TERM_MEMORY.write_text(LONG_TERM_INITIAL, encoding="utf-8")
 
+
+# ─── Image Wikipedia ──────────────────────────────────────────────────────────
+
+_HEADERS = {"User-Agent": "MuseesApp/1.0 (educational; contact@example.com)"}
+
+
+def _wiki_get(url: str, timeout: int = 6) -> bytes:
+    req = urllib.request.Request(url, headers=_HEADERS)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _fetch_artwork_image_sync(titre: str, artiste: str | None) -> bytes | None:
+    query = f"{titre} {artiste or ''}".strip()
+    try:
+        params = urllib.parse.urlencode({
+            "action": "query", "list": "search",
+            "srsearch": query, "format": "json", "srlimit": 1,
+        })
+        results = json.loads(_wiki_get(
+            f"https://en.wikipedia.org/w/api.php?{params}"
+        )).get("query", {}).get("search", [])
+        if not results:
+            return None
+        page_title = results[0]["title"]
+
+        params = urllib.parse.urlencode({
+            "action": "query", "titles": page_title,
+            "prop": "pageimages", "format": "json", "pithumbsize": 1200,
+        })
+        pages = json.loads(_wiki_get(
+            f"https://en.wikipedia.org/w/api.php?{params}"
+        )).get("query", {}).get("pages", {})
+        thumb_url = next(iter(pages.values())).get("thumbnail", {}).get("source")
+        if not thumb_url:
+            return None
+
+        return _wiki_get(thumb_url, timeout=10)
+    except Exception:
+        return None
+
+
+async def _fetch_artwork_image(titre: str | None, artiste: str | None) -> bytes | None:
+    if not titre:
+        return None
+    return await asyncio.to_thread(_fetch_artwork_image_sync, titre, artiste)
+
+
+# ─── Routes ───────────────────────────────────────────────────────────────────
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -48,32 +140,14 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 @app.post("/profile")
 async def profile_route(request: Request):
     data = await request.json()
-    save_profile(data)
-    return JSONResponse({"ok": True})
-
-
-def _archive_analyses() -> int | None:
-    """Déplace le contenu courant de analyses/ dans old-profiles/N (N auto-incrémenté)."""
-    if not any(ANALYSES_DIR.glob("*.json")):
-        return None  # rien d'analysé à archiver
-    items = [p for p in ANALYSES_DIR.iterdir() if p.name != ".gitkeep"]
-    OLD_PROFILES_DIR.mkdir(exist_ok=True)
-    existing = [int(p.name) for p in OLD_PROFILES_DIR.iterdir() if p.is_dir() and p.name.isdigit()]
-    n = max(existing) + 1 if existing else 1
-    dest = OLD_PROFILES_DIR / str(n)
-    dest.mkdir()
-    for item in items:
-        shutil.move(str(item), str(dest / item.name))
-    return n
+    persona = save_profile(data)
+    return JSONResponse({"ok": True, "persona": persona})
 
 
 @app.post("/new-profile")
 async def new_profile_route():
-    archived = _archive_analyses()
-    AUDIO_DIR.mkdir(exist_ok=True)
-    PHOTOS_DIR.mkdir(exist_ok=True)
-    _reset_memories()
-    return JSONResponse({"ok": True, "archived": archived})
+    _reset_session_and_memories()
+    return JSONResponse({"ok": True})
 
 
 @app.post("/analyze")
@@ -81,20 +155,46 @@ async def analyze(file: UploadFile = File(...)):
     image_bytes = await file.read()
     media_type = file.content_type or "image/jpeg"
     try:
-        phash = _phash(image_bytes)
-        cached = _find_cached(phash)
-        if cached:
-            payload = {k: v for k, v in cached.items() if k != "_phash"}
-            payload["from_cache"] = True
-            return JSONResponse(payload)
+        persona = load_persona()
+        pdir = _persona_dir(persona)
 
         result = analyze_artwork(image_bytes, media_type, load_profile_text())
         result["artist_id"] = match_artist(result.get("artiste_probable"))
-        result["_phash"] = phash
-        _save(result)
-        (PHOTOS_DIR / f"{phash}.jpg").write_bytes(image_bytes)
-        payload = {k: v for k, v in result.items() if k != "_phash"}
-        payload["from_cache"] = False
+
+        match_key = find_existing_artwork(result, _db_entries(pdir))
+
+        if match_key:
+            result = json.loads((pdir / f"{match_key}.json").read_text(encoding="utf-8"))
+            key = match_key
+        else:
+            key = _phash(image_bytes)
+            result["_key"] = key
+            (pdir / f"{key}.json").write_text(
+                json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+
+        # Always try Wikipedia — overwrites old user photos on repeated scans
+        artwork_img = await _fetch_artwork_image(
+            result.get("titre_probable"), result.get("artiste_probable")
+        )
+        photo_path = pdir / "photos" / f"{key}.jpg"
+        if artwork_img:
+            photo_path.write_bytes(artwork_img)
+        elif not photo_path.exists():
+            photo_path.write_bytes(image_bytes)
+
+        in_session = key in {e["key"] for e in _session()}
+        if not in_session:
+            _session_add({
+                "key": key,
+                "titre": result.get("titre_probable"),
+                "artiste": result.get("artiste_probable"),
+                "artist_id": result.get("artist_id"),
+            })
+
+        payload = dict(result)
+        payload["from_cache"] = match_key is not None
+        payload["in_session"] = in_session
         return JSONResponse(payload)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -104,24 +204,57 @@ async def analyze(file: UploadFile = File(...)):
 async def narrate_route(request: Request):
     data = await request.json()
     try:
-        phash = _find_phash_for_data(data)
-        if phash:
-            audio_file = AUDIO_DIR / f"{phash}.mp3"
+        pdir = _persona_dir(load_persona())
+        key = data.get("_key")
+        if key:
+            audio_file = pdir / "audio" / f"{key}.mp3"
             if audio_file.exists():
                 return Response(content=audio_file.read_bytes(), media_type="audio/mpeg")
 
         audio_bytes = narrate(data)
 
-        if phash:
-            (AUDIO_DIR / f"{phash}.mp3").write_bytes(audio_bytes)
+        if key:
+            (pdir / "audio" / f"{key}.mp3").write_bytes(audio_bytes)
 
         return Response(content=audio_bytes, media_type="audio/mpeg")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@app.get("/library")
+async def library_route():
+    pdir = _persona_dir(load_persona())
+    items = []
+    for e in reversed(_session()):
+        key = e["key"]
+        items.append({
+            "phash": key,
+            "titre": e.get("titre"),
+            "artiste": e.get("artiste"),
+            "artist_id": e.get("artist_id"),
+            "has_photo": (pdir / "photos" / f"{key}.jpg").exists(),
+            "has_audio": (pdir / "audio" / f"{key}.mp3").exists(),
+        })
+    return JSONResponse(items)
+
+
+@app.get("/photos/{key}")
+async def get_photo(key: str):
+    f = _persona_dir(load_persona()) / "photos" / f"{key}.jpg"
+    if not f.exists():
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return Response(content=f.read_bytes(), media_type="image/jpeg")
+
+
+@app.get("/audio/{key}")
+async def get_audio(key: str):
+    f = _persona_dir(load_persona()) / "audio" / f"{key}.mp3"
+    if not f.exists():
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return Response(content=f.read_bytes(), media_type="audio/mpeg")
+
+
 def _phash(image_bytes: bytes) -> str:
-    """Perceptual hash (64-bit DCT) — same painting ≈ hamming distance ≤ 10."""
     try:
         arr = np.frombuffer(image_bytes, dtype=np.uint8)
         img = cv2.imdecode(arr, cv2.IMREAD_GRAYSCALE)
@@ -136,84 +269,6 @@ def _phash(image_bytes: bytes) -> str:
     bits = (block > mean)
     val = int("".join("1" if b else "0" for b in bits), 2)
     return f"{val:016x}"
-
-
-def _hamming(a: str, b: str) -> int:
-    return bin(int(a, 16) ^ int(b, 16)).count("1")
-
-
-PHASH_THRESHOLD = 8  # bits différents tolérés sur 64
-
-
-def _find_cached(phash: str) -> dict | None:
-    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            stored = data.get("_phash")
-            if stored and _hamming(phash, stored) <= PHASH_THRESHOLD:
-                return data
-        except Exception:
-            continue
-    return None
-
-
-@app.get("/library")
-async def library_route():
-    items = []
-    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            phash = data.get("_phash")
-            if not phash:
-                continue
-            items.append({
-                "phash": phash,
-                "titre": data.get("titre_probable"),
-                "artiste": data.get("artiste_probable"),
-                "has_photo": (PHOTOS_DIR / f"{phash}.jpg").exists(),
-                "has_audio": (AUDIO_DIR / f"{phash}.mp3").exists(),
-            })
-        except Exception:
-            continue
-    return JSONResponse(items)
-
-
-@app.get("/photos/{phash}")
-async def get_photo(phash: str):
-    f = PHOTOS_DIR / f"{phash}.jpg"
-    if not f.exists():
-        return JSONResponse({"error": "not found"}, status_code=404)
-    return Response(content=f.read_bytes(), media_type="image/jpeg")
-
-
-@app.get("/audio/{phash}")
-async def get_audio(phash: str):
-    f = AUDIO_DIR / f"{phash}.mp3"
-    if not f.exists():
-        return JSONResponse({"error": "not found"}, status_code=404)
-    return Response(content=f.read_bytes(), media_type="audio/mpeg")
-
-
-def _find_phash_for_data(data: dict) -> str | None:
-    titre = data.get("titre_probable")
-    artiste = data.get("artiste_probable")
-    if not titre or not artiste:
-        return None
-    for path in sorted(ANALYSES_DIR.glob("*.json"), reverse=True):
-        try:
-            j = json.loads(path.read_text(encoding="utf-8"))
-            if j.get("titre_probable") == titre and j.get("artiste_probable") == artiste:
-                return j.get("_phash")
-        except Exception:
-            continue
-    return None
-
-
-def _save(result: dict) -> None:
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".json"
-    (ANALYSES_DIR / filename).write_text(
-        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
 
 
 dist = ROOT / "frontend" / "dist"

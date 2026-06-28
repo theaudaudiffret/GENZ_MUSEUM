@@ -1,0 +1,24 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne (Haute Renaissance)",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois de peuplier",
+  "description": "Cette œuvre, présentée ici à travers une capture d'écran d'une recherche en ligne, constitue l'un des portraits les plus célèbres de l'histoire de l'art occidental. La composition représente une jeune femme assise, le buste légèrement tourné de trois quarts vers le spectateur, les mains délicatement croisées au premier plan, dans une posture qui confère stabilité et harmonie pyramidale à l'ensemble. Le visage, éclairé avec subtilité, présente l'illustre sourire énigmatique, obtenu grâce à la technique du sfumato propre à Léonard de Vinci — un fondu vaporeux des contours et des transitions tonales. Derrière le modèle s'étend un paysage atmosphérique et fantastique, composé de chemins sinueux, de cours d'eau et de massifs montagneux estompés dans une brume bleutée, illustrant la maîtrise de la perspective aérienne. Le traitement de la lumière, la profondeur psychologique du regard et l'unité de la composition témoignent de l'aboutissement des recherches scientifiques et artistiques de l'auteur.",
+  "couleurs_dominantes": [
+    "brun doré",
+    "vert olive",
+    "ocre",
+    "bleu-gris",
+    "noir"
+  ],
+  "ambiance": "L'œuvre dégage une atmosphère de sérénité contemplative et de mystère intemporel. Le regard direct du modèle et son sourire ambigu instaurent un dialogue silencieux avec l'observateur, tandis que le paysage onirique en arrière-plan accentue une impression de calme méditatif et de profondeur intérieure, conforme à l'idéal humaniste de la Renaissance.",
+  "sujets": [
+    "portrait",
+    "portrait féminin",
+    "paysage",
+    "Renaissance"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_key": "83e0709400409080"
+}

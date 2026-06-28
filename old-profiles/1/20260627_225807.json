@@ -1,0 +1,25 @@
+{
+  "titre_probable": "La Belle Jardinière",
+  "artiste_probable": "Raphaël (Raffaello Sanzio)",
+  "style": "Renaissance italienne (Haute Renaissance)",
+  "epoque": "Début du XVIe siècle (vers 1507)",
+  "technique": "Huile sur bois (panneau)",
+  "description": "Imagine une scène super douce comme dans un dessin animé tranquille ! Au centre, une femme élégante (la Vierge Marie) est assise dans un paysage de campagne, avec une robe rouge et un grand manteau bleu. Deux petits enfants tout nus sont à ses pieds : l'un tient un mini-bâton avec une croix (c'est le petit saint Jean-Baptiste), et l'autre, c'est le bébé Jésus. Ils se regardent et se touchent les mains comme s'ils se faisaient un câlin secret. Anecdote insolite : Raphaël a peint ce tableau en forme de triangle ! Si tu traces des lignes entre les trois personnages, leurs corps forment une pyramide parfaite. C'était sa grosse astuce pour rendre les scènes super équilibrées et harmonieuses. Derrière eux, on voit des montagnes bleutées, un petit village et un ciel doux, ça donne envie de pique-niquer là !",
+  "couleurs_dominantes": [
+    "bleu",
+    "rouge",
+    "ocre/doré",
+    "vert",
+    "brun"
+  ],
+  "ambiance": "Calme, tendre et apaisante, comme un moment de paix en pleine nature. Tout est doux et équilibré, ça respire la sérénité et la douceur d'un après-midi ensoleillé.",
+  "sujets": [
+    "scène religieuse",
+    "Vierge à l'Enfant",
+    "paysage",
+    "portrait de groupe",
+    "enfance"
+  ],
+  "artist_id": "raphael",
+  "_phash": "b48a41a020c12000"
+}

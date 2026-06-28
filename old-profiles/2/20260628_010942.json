@@ -1,0 +1,23 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois (peuplier)",
+  "description": "Voici la dame la plus célèbre du monde entier : la Joconde ! C'est une femme assise, les mains gentiment croisées, qui te regarde avec un petit sourire mystérieux. Personne ne sait vraiment si elle sourit ou pas, et c'est ça qui est rigolo ! Derrière elle, on voit un paysage de montagnes, de rivières et de chemins qui semblent disparaître dans la brume, comme dans un rêve. Léonard de Vinci a utilisé une astuce magique appelée le 'sfumato' : il a rendu les contours tout doux et flous, comme de la fumée, pour que le visage paraisse vivant. Sur cette image, la photo a été prise sur l'écran d'un téléphone qui montre une recherche Google, alors les couleurs sont un peu bizarres avec des reflets arc-en-ciel !",
+  "couleurs_dominantes": [
+    "brun",
+    "vert olive",
+    "ocre",
+    "doré",
+    "noir"
+  ],
+  "ambiance": "Calme, mystérieuse et un peu magique. On dirait que la dame garde un secret rien qu'à elle !",
+  "sujets": [
+    "portrait",
+    "femme",
+    "paysage"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "bc98904100609652"
+}

@@ -3,19 +3,45 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
 
+# Démo : le profil utilisateur se résume à 2 personas. Le ton choisi dans le
+# questionnaire détermine lequel ; le reste des réponses est ignoré.
+PERSONAS = {
+    "serious": (
+        "# Long-term memory — Visitor profile\n"
+        "\n"
+        "Persona: serious\n"
+        "\n"
+        "The visitor prefers a serious, academic tone. Favor historical context, "
+        "factual rigor and in-depth analysis of the work.\n"
+    ),
+    "fun": (
+        "# Long-term memory — Visitor profile\n"
+        "\n"
+        "Persona: fun\n"
+        "\n"
+        "The visitor prefers a playful, accessible tone. Favor surprising anecdotes, "
+        "fun comparisons and a lively, light narration.\n"
+    ),
+}
 
-def save_profile(data: dict) -> None:
-    interests = data.get("interests") or []
-    lines = [
-        "# Mémoire long terme — Profil du visiteur",
-        "",
-        f"- Langue : {data.get('language') or 'Français'}",
-        f"- Tranche d'âge : {data.get('age_range') or '—'}",
-        f"- Niveau en art : {data.get('level') or '—'}",
-        f"- Centres d'intérêt : {', '.join(interests) if interests else '—'}",
-        f"- Ton souhaité : {data.get('tone') or '—'}",
-    ]
-    LONG_TERM_MEMORY.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+def persona_from_tone(tone: str | None) -> str:
+    t = (tone or "").lower()
+    return "serious" if "sérieux" in t or "serieux" in t or "serious" in t else "fun"
+
+
+def save_profile(data: dict) -> str:
+    persona = persona_from_tone(data.get("tone"))
+    LONG_TERM_MEMORY.write_text(PERSONAS[persona], encoding="utf-8")
+    return persona
+
+
+def load_persona() -> str:
+    content = LONG_TERM_MEMORY.read_text(encoding="utf-8") if LONG_TERM_MEMORY.exists() else ""
+    for line in content.splitlines():
+        if line.strip().startswith("Persona"):
+            return line.split(":", 1)[1].strip()
+    return "fun"
 
 
 def load_profile_text() -> str | None:

@@ -1,0 +1,24 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois (peuplier)",
+  "description": "Coucou ! Tu regardes l'une des peintures les plus célèbres du monde : La Joconde ! On voit une dame assise, les mains croisées bien sagement, avec un petit sourire mystérieux dont personne ne sait s'il est joyeux ou un peu triste. Derrière elle, il y a un magnifique paysage avec des montagnes, des chemins et de l'eau qui ressemble à un pays imaginaire. Sur l'image, tu vois plusieurs versions du tableau : une à gauche avec une robe foncée et des manches rouges (c'est une copie faite par un élève de Léonard !) et une à droite qui est la vraie peinture du Louvre, avec des couleurs plus dorées. C'est marrant de les comparer pour voir les petites différences !",
+  "couleurs_dominantes": [
+    "brun doré",
+    "vert olive",
+    "bleu",
+    "ocre",
+    "rouge"
+  ],
+  "ambiance": "Calme, douce et un peu magique, comme si la dame gardait un secret rien qu'à elle grâce à son célèbre sourire mystérieux !",
+  "sujets": [
+    "portrait",
+    "femme",
+    "paysage",
+    "Renaissance"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "88c963a030404080"
+}

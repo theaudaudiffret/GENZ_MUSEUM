@@ -1,0 +1,25 @@
+{
+  "titre_probable": "Nymphéas bleus (Blue Water Lilies)",
+  "artiste_probable": "Claude Monet",
+  "style": "Impressionism",
+  "epoque": "circa 1916–1919, early 20th century",
+  "technique": "Oil on canvas",
+  "description": "This canvas belongs to Monet's celebrated 'Nymphéas' (Water Lilies) series, executed at his garden in Giverny during the final decades of his life. The composition abandons the conventional horizon line entirely, presenting the spectator with a vertiginous, immersive view of the pond's surface. The picture plane is constructed as an all-over field in which floating lily pads and pale blossoms punctuate a densely woven matrix of blues, greens and violets. Reflections of overhanging willow branches descend from the upper register, dissolving the distinction between water, vegetation and sky. The brushwork is vigorous and gestural, applied in layered, broken strokes that anticipate certain concerns of twentieth-century abstraction. The absence of any fixed vantage point and the suppression of spatial depth exemplify Monet's late preoccupation with the dissolution of form into pure optical sensation.",
+  "couleurs_dominantes": [
+    "blue",
+    "green",
+    "violet",
+    "turquoise",
+    "ochre"
+  ],
+  "ambiance": "Contemplative and meditative, the work conveys a sustained immersion in nature observed under shifting light. The dense chromatic vibration produces an atmosphere of serene yet dynamic introspection, characteristic of Monet's late aesthetic in which perception itself becomes the principal subject.",
+  "sujets": [
+    "landscape",
+    "water garden",
+    "water lilies",
+    "nature study",
+    "reflections"
+  ],
+  "artist_id": "monet",
+  "_key": "d2810bd530800040"
+}

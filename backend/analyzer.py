@@ -31,11 +31,11 @@ def analyze_artwork(image_bytes: bytes, media_type: str, visitor_profile: str | 
     system_prompt = (ROOT / "docs" / "prompt.md").read_text(encoding="utf-8")
     image_data = base64.standard_b64encode(image_bytes).decode("utf-8")
 
-    instruction = "Analyse cette œuvre d'art et fournis un résumé complet."
+    instruction = "Analyze this artwork and provide a complete summary."
     if visitor_profile:
         instruction = (
-            f"{visitor_profile}\n\n{instruction} Adapte le vocabulaire et les angles "
-            "abordés (champs description et ambiance) au profil du visiteur ci-dessus."
+            f"{visitor_profile}\n\n{instruction} Adapt the vocabulary and the angles "
+            "covered (description and ambiance fields) to the visitor profile above."
         )
 
     client = anthropic.Anthropic()

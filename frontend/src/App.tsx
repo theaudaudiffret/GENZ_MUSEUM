@@ -32,7 +32,7 @@ export default function App() {
 
     const prog = getProgress()
     const prev = prog[artistId] ?? 0
-    if (prev >= MAX_SCANS) return // déjà expert
+    if (prev >= MAX_SCANS) return
 
     const next = Math.min(prev + 1, MAX_SCANS)
     prog[artistId] = next
@@ -57,15 +57,14 @@ export default function App() {
         {tab === 'library' && <PageBiblio />}
       </div>
 
-      {/* Toast notification */}
       {toast && (
         <div style={{ ...s.toast, borderColor: toast.color }}>
-          <span style={{ color: toast.color, fontWeight: 700 }}>
-            {toast.isNew ? '🎨 Découverte !' : '⬆️ Progression'}
+          <span style={{ color: toast.color, fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic', fontSize: '.82rem' }}>
+            {toast.isNew ? '◆ Découverte' : '↑ Progression'}
           </span>
           <div style={s.toastText}>
-            <span style={{ fontWeight: 600 }}>{toast.artistName}</span>
-            <span style={{ fontSize: '.72rem', opacity: 0.5 }}>{toast.museumName}</span>
+            <span style={{ fontWeight: 600, color: '#1c1812' }}>{toast.artistName}</span>
+            <span style={{ fontSize: '.7rem', color: '#1c1812', opacity: 0.45 }}>{toast.museumName}</span>
           </div>
           <span style={{ ...s.toastLevel, background: toast.color + '22', color: toast.color }}>
             {toast.level}
@@ -73,23 +72,25 @@ export default function App() {
         </div>
       )}
 
-      {/* Tab bar */}
       <nav style={s.tabBar}>
-        <TabBtn icon="📷" label="Scanner" active={tab === 'camera'} onClick={() => setTab('camera')} />
-        <TabBtn icon="📚" label="Bibliothèque" active={tab === 'library'} onClick={() => setTab('library')} />
-        <TabBtn icon="🏆" label="Collection" active={tab === 'achievements'} onClick={() => setTab('achievements')} />
+        <TabBtn glyph="⊙" label="Scanner" active={tab === 'camera'} onClick={() => setTab('camera')} />
+        <TabBtn glyph="◫" label="Bibliothèque" active={tab === 'library'} onClick={() => setTab('library')} />
+        <TabBtn glyph="◈" label="Collection" active={tab === 'achievements'} onClick={() => setTab('achievements')} />
       </nav>
     </div>
   )
 }
 
-function TabBtn({ icon, label, active, onClick }: {
-  icon: string; label: string; active: boolean; onClick: () => void
+function TabBtn({ glyph, label, active, onClick }: {
+  glyph: string; label: string; active: boolean; onClick: () => void
 }) {
   return (
-    <button style={{ ...s.tabBtn, opacity: active ? 1 : 0.45 }} onClick={onClick}>
-      <span style={s.tabIcon}>{icon}</span>
-      <span style={{ ...s.tabLabel, fontWeight: active ? 700 : 400 }}>{label}</span>
+    <button
+      style={{ ...s.tabBtn, color: active ? '#a67c2a' : '#1c1812', opacity: active ? 1 : 0.35 }}
+      onClick={onClick}
+    >
+      <span style={s.tabGlyph}>{glyph}</span>
+      <span style={s.tabLabel}>{label}</span>
     </button>
   )
 }
@@ -97,9 +98,9 @@ function TabBtn({ icon, label, active, onClick }: {
 const s = {
   root: {
     minHeight: '100vh',
-    background: '#0f0f0f',
-    color: '#f0f0f0',
-    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+    background: '#f7f4ef',
+    color: '#1c1812',
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif",
     display: 'flex',
     flexDirection: 'column' as const,
     position: 'relative' as const,
@@ -116,16 +117,16 @@ const s = {
     top: 16,
     left: '50%',
     transform: 'translateX(-50%)',
-    background: '#1a1a1a',
+    background: '#ffffff',
     border: '1px solid',
-    borderRadius: 14,
-    padding: '10px 16px',
+    borderRadius: 10,
+    padding: '8px 14px',
     display: 'flex',
     alignItems: 'center',
     gap: 10,
     fontSize: '.85rem',
     zIndex: 100,
-    boxShadow: '0 4px 24px rgba(0,0,0,.6)',
+    boxShadow: '0 4px 20px rgba(0,0,0,.1)',
     maxWidth: 'calc(100vw - 32px)',
   },
   toastText: {
@@ -134,19 +135,20 @@ const s = {
     gap: 1,
   },
   toastLevel: {
-    padding: '2px 10px',
-    borderRadius: 20,
-    fontSize: '.75rem',
+    padding: '2px 9px',
+    borderRadius: 4,
+    fontSize: '.7rem',
     fontWeight: 600,
+    letterSpacing: '.04em',
   },
   tabBar: {
     position: 'fixed' as const,
     bottom: 0,
     left: 0,
     right: 0,
-    height: 72,
-    background: '#141414',
-    borderTop: '1px solid #222',
+    height: 68,
+    background: '#f0ece4',
+    borderTop: '1px solid #ddd8ce',
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -155,14 +157,19 @@ const s = {
   tabBtn: {
     background: 'none',
     border: 'none',
-    color: '#f0f0f0',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     padding: '8px 24px',
+    transition: 'color .15s, opacity .15s',
   },
-  tabIcon: { fontSize: '1.4rem' },
-  tabLabel: { fontSize: '.65rem', letterSpacing: '.05em' },
+  tabGlyph: { fontSize: '1.1rem', lineHeight: 1 },
+  tabLabel: {
+    fontSize: '.6rem',
+    letterSpacing: '.1em',
+    textTransform: 'uppercase' as const,
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif",
+  },
 } as const

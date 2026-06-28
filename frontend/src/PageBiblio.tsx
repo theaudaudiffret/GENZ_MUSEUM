@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { MUSEUMS, getArtistById } from './data'
 
 interface LibraryItem {
   phash: string
   titre: string | null
   artiste: string | null
+  artist_id: string | null
   has_photo: boolean
   has_audio: boolean
 }
@@ -12,7 +14,7 @@ export default function PageBiblio() {
   const [items, setItems] = useState<LibraryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [playingPhash, setPlayingPhash] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
@@ -24,24 +26,20 @@ export default function PageBiblio() {
   }, [])
 
   function handlePlay(phash: string) {
-    // Pause si même item en cours
     if (playingPhash === phash) {
       audioRef.current?.pause()
       setPlayingPhash(null)
       return
     }
-
-    // Arrêter l'audio précédent
     audioRef.current?.pause()
     setPlayingPhash(phash)
-    setIsLoading(true)
-
+    setIsLoadingAudio(true)
     const audio = new Audio(`/audio/${phash}`)
     audioRef.current = audio
-    audio.oncanplaythrough = () => setIsLoading(false)
+    audio.oncanplaythrough = () => setIsLoadingAudio(false)
     audio.onended = () => setPlayingPhash(null)
-    audio.onerror = () => { setPlayingPhash(null); setIsLoading(false) }
-    audio.play().catch(() => { setPlayingPhash(null); setIsLoading(false) })
+    audio.onerror = () => { setPlayingPhash(null); setIsLoadingAudio(false) }
+    audio.play().catch(() => { setPlayingPhash(null); setIsLoadingAudio(false) })
   }
 
   if (loading) {
@@ -62,60 +60,131 @@ export default function PageBiblio() {
     )
   }
 
+  // Grouper par musée
+  const museumGroups = MUSEUMS
+    .map((m) => ({
+      museum: m,
+      items: items.filter((item) => getArtistById(item.artist_id || '')?.museum.id === m.id),
+    }))
+    .filter((g) => g.items.length > 0)
+
+  const unknownItems = items.filter(
+    (item) => !getArtistById(item.artist_id || ''),
+  )
+
   return (
     <div style={s.page}>
       <h1 style={s.h1}>Bibliothèque</h1>
       <p style={s.sub}>{items.length} œuvre{items.length > 1 ? 's' : ''}</p>
 
-      <div style={s.list}>
-        {items.map((item) => {
-          const active = playingPhash === item.phash
+      {museumGroups.map(({ museum, items: groupItems }) => (
+        <div key={museum.id} style={s.section}>
+          <div style={s.sectionHeader}>
+            <span style={{ ...s.sectionDot, background: museum.color }} />
+            <span style={{ ...s.sectionName, color: museum.color }}>{museum.name}</span>
+            <span style={s.sectionCount}>{groupItems.length}</span>
+          </div>
+          <div style={s.list}>
+            {groupItems.map((item) => (
+              <ArtworkRow
+                key={item.phash}
+                item={item}
+                active={playingPhash === item.phash}
+                isLoadingAudio={isLoadingAudio}
+                accentColor={museum.color}
+                onPlay={handlePlay}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
 
-          return (
-            <div key={item.phash} style={{ ...s.item, borderColor: active ? '#fff3' : '#1f1f1f' }}>
-              {/* Miniature */}
-              {item.has_photo
-                ? <img src={`/photos/${item.phash}`} alt="" style={s.thumb} />
-                : <div style={s.thumbFallback}>🎨</div>}
-
-              {/* Titre + artiste */}
-              <div style={s.info}>
-                <div style={s.titre}>{item.titre ?? '—'}</div>
-                <div style={s.artiste}>{item.artiste ?? '—'}</div>
-              </div>
-
-              {/* Bouton audio */}
-              {item.has_audio && (
-                <button style={{ ...s.playBtn, background: active ? '#fff' : '#2a2a2a' }} onClick={() => handlePlay(item.phash)}>
-                  <span style={{ color: active ? '#111' : '#f0f0f0', fontSize: '.9rem' }}>
-                    {active && isLoading ? '⏳' : active ? '⏸' : '▶'}
-                  </span>
-                </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      {unknownItems.length > 0 && (
+        <div style={s.section}>
+          <div style={s.sectionHeader}>
+            <span style={{ ...s.sectionDot, background: '#c0b8af' }} />
+            <span style={{ ...s.sectionName, color: '#8a8078' }}>Autres</span>
+            <span style={s.sectionCount}>{unknownItems.length}</span>
+          </div>
+          <div style={s.list}>
+            {unknownItems.map((item) => (
+              <ArtworkRow
+                key={item.phash}
+                item={item}
+                active={playingPhash === item.phash}
+                isLoadingAudio={isLoadingAudio}
+                accentColor="#8a8078"
+                onPlay={handlePlay}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
+function ArtworkRow({ item, active, isLoadingAudio, accentColor, onPlay }: {
+  item: LibraryItem
+  active: boolean
+  isLoadingAudio: boolean
+  accentColor: string
+  onPlay: (phash: string) => void
+}) {
+  return (
+    <div style={{ ...s.item, borderColor: active ? accentColor + '66' : '#e8e2d8' }}>
+      {item.has_photo
+        ? <img src={`/photos/${item.phash}`} alt="" style={s.thumb} />
+        : <div style={s.thumbFallback}>◆</div>}
+
+      <div style={s.info}>
+        <div style={s.titre}>{item.titre ?? '—'}</div>
+        <div style={s.artiste}>{item.artiste ?? '—'}</div>
+      </div>
+
+      {item.has_audio && (
+        <button
+          style={{
+            ...s.playBtn,
+            background: active ? accentColor : 'transparent',
+            border: active ? 'none' : '1px solid #e4ddd3',
+          }}
+          onClick={() => onPlay(item.phash)}
+        >
+          <span style={{ color: active ? '#fff' : '#1c1812', fontSize: '.8rem', opacity: active ? 1 : 0.6 }}>
+            {active && isLoadingAudio ? '…' : active ? '⏸' : '▷'}
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+const PLAYFAIR = "'Playfair Display', Georgia, serif"
+const SANS = "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
+
 const s = {
-  page: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '1rem', padding: '2rem 1.2rem 1rem', width: '100%', maxWidth: 500, margin: '0 auto' },
-  h1: { fontSize: '1.4rem', fontWeight: 700, letterSpacing: '.02em' },
-  sub: { fontSize: '.82rem', opacity: 0.4, marginTop: -8 },
-  empty: { opacity: 0.35, fontSize: '.9rem', textAlign: 'center' as const, marginTop: '4rem' },
-  spinner: { width: 36, height: 36, border: '3px solid #222', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .8s linear infinite', marginTop: '4rem' },
+  page: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '1.5rem', padding: '2rem 1.2rem 1rem', width: '100%', maxWidth: 500, margin: '0 auto', color: '#1c1812' },
+  h1: { fontFamily: PLAYFAIR, fontSize: '1.5rem', fontWeight: 400, color: '#1c1812' },
+  sub: { fontFamily: SANS, fontSize: '.78rem', color: '#1c1812', opacity: 0.35, marginTop: -8 },
+  empty: { fontFamily: SANS, color: '#1c1812', opacity: 0.3, fontSize: '.88rem', textAlign: 'center' as const, marginTop: '4rem' },
+  spinner: { width: 32, height: 32, border: '2px solid #e4ddd3', borderTopColor: '#c9a84c', borderRadius: '50%', animation: 'spin .8s linear infinite', marginTop: '4rem' },
 
-  list: { width: '100%', display: 'flex', flexDirection: 'column' as const, gap: 8 },
-  item: { display: 'flex', alignItems: 'center', gap: 12, background: '#1a1a1a', borderRadius: 14, padding: 10, border: '1px solid', overflow: 'hidden' },
+  section: { width: '100%', display: 'flex', flexDirection: 'column' as const, gap: 8 },
+  sectionHeader: { display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 2 },
+  sectionDot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0 },
+  sectionName: { fontFamily: PLAYFAIR, fontSize: '.88rem', fontWeight: 400, flex: 1 },
+  sectionCount: { fontFamily: SANS, fontSize: '.7rem', color: '#1c1812', opacity: 0.35 },
 
-  thumb: { width: 60, height: 60, objectFit: 'cover' as const, borderRadius: 9, flexShrink: 0 },
-  thumbFallback: { width: 60, height: 60, background: '#222', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', flexShrink: 0 },
+  list: { display: 'flex', flexDirection: 'column' as const, gap: 6 },
+  item: { display: 'flex', alignItems: 'center', gap: 12, background: '#ffffff', borderRadius: 10, padding: 10, border: '1px solid', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.05)', transition: 'border-color .2s' },
+
+  thumb: { width: 52, height: 52, objectFit: 'cover' as const, borderRadius: 7, flexShrink: 0 },
+  thumbFallback: { width: 52, height: 52, background: '#f0ece4', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', flexShrink: 0, color: '#d4cdc5' },
 
   info: { flex: 1, minWidth: 0 },
-  titre: { fontSize: '.88rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
-  artiste: { fontSize: '.72rem', opacity: 0.45, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  titre: { fontFamily: PLAYFAIR, fontSize: '.9rem', fontWeight: 400, color: '#1c1812', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  artiste: { fontFamily: SANS, fontSize: '.7rem', color: '#1c1812', opacity: 0.4, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
 
-  playBtn: { width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s' },
+  playBtn: { width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s, border .15s' },
 } as const

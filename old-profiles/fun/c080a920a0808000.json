@@ -1,0 +1,24 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois de peuplier",
+  "description": "Voici LA star absolue du Louvre, celle qui fait des selfies à la pelle ! Une dame élégante, les mains sagement croisées, vous fixe avec ce fameux petit sourire qui rend tout le monde fou depuis 500 ans. Souriait-elle vraiment ou se moquait-elle gentiment de Léonard ? Mystère ! Derrière elle, un paysage brumeux de montagnes, de rivières et de ponts s'étire à perte de vue, peint avec la technique du sfumato (ces dégradés tout doux comme un filtre Instagram avant l'heure). Petit clin d'œil au texte sous l'image : oui, cette dame a même été kidnappée en 1911 par un employé du Louvre qui l'a planquée chez lui pendant deux ans ! C'est ce vol qui l'a rendue ultra-célèbre. Le cadre doré sculpté et le mur bleu nuit du musée ajoutent au côté 'trésor national'.",
+  "couleurs_dominantes": [
+    "brun",
+    "ocre",
+    "vert olive",
+    "bleu",
+    "or"
+  ],
+  "ambiance": "Énigmatique et envoûtante : on dirait qu'elle garde un secret délicieux. Une atmosphère calme, douce et un brin malicieuse, comme si elle vous suivait du regard dans toute la salle.",
+  "sujets": [
+    "portrait",
+    "femme",
+    "paysage",
+    "Renaissance"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_key": "c080a920a0808000"
+}

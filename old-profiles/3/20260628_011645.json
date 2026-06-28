@@ -1,0 +1,23 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois (peuplier)",
+  "description": "C'est l'un des tableaux les plus célèbres du monde ! On y voit une dame assise, les mains croisées bien sagement l'une sur l'autre. Elle a un petit sourire mystérieux : on ne sait pas trop si elle est contente ou pensive, et c'est ça qui rend le tableau si magique ! Derrière elle, il y a un paysage de montagnes, de rivières et de chemins qui semble s'étendre très loin. Le peintre, Léonard de Vinci, était un génie qui savait peindre les visages comme s'ils étaient vivants. Petit détail rigolo : sur cette photo, l'image a des reflets arc-en-ciel parce qu'elle est prise sur un écran d'ordinateur !",
+  "couleurs_dominantes": [
+    "brun",
+    "vert",
+    "ocre",
+    "doré",
+    "noir"
+  ],
+  "ambiance": "Calme, douce et un peu mystérieuse, comme si la dame gardait un secret rien qu'à elle",
+  "sujets": [
+    "portrait",
+    "femme",
+    "paysage"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "f482cb2400202080"
+}

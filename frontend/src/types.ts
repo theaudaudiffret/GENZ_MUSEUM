@@ -1,5 +1,4 @@
 export interface VisitorProfile {
-  language: string
   age_range: string
   level: string
   interests: string[]
@@ -18,4 +17,6 @@ export interface ArtworkSummary {
   sujets: string[]
   artist_id: string | null
   from_cache: boolean
+  in_session: boolean
+  _key: string
 }

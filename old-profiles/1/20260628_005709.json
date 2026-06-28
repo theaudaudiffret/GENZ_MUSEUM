@@ -1,0 +1,24 @@
+{
+  "titre_probable": "La Joconde (Mona Lisa)",
+  "artiste_probable": "Léonard de Vinci",
+  "style": "Renaissance italienne",
+  "epoque": "Début du XVIe siècle (vers 1503-1519)",
+  "technique": "Huile sur panneau de bois (peuplier)",
+  "description": "Voici la peinture la plus célèbre du monde ! On y voit une dame assise, tranquillement, les mains posées l'une sur l'autre. Son secret, c'est son petit sourire mystérieux : on dirait qu'elle sourit, mais en la regardant longtemps, on ne sait plus trop ! Derrière elle, il y a un paysage magique avec des montagnes, une rivière et un pont. Léonard de Vinci a utilisé une astuce magique appelée le 'sfumato' : il a fait des contours tout doux et un peu flous, comme de la fumée, pour rendre le visage très vivant. Aujourd'hui, ce tableau est gardé au musée du Louvre à Paris, derrière une vitre spéciale, et des millions de gens viennent la voir chaque année. Sur l'image, on la voit sur un écran d'ordinateur lors d'une recherche sur Internet !",
+  "couleurs_dominantes": [
+    "brun",
+    "vert",
+    "ocre",
+    "doré",
+    "noir"
+  ],
+  "ambiance": "Calme, douce et un peu mystérieuse, comme un secret bien gardé qui te fait sourire toi aussi",
+  "sujets": [
+    "portrait",
+    "femme",
+    "paysage",
+    "Renaissance"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_phash": "867a382326d896e0"
+}

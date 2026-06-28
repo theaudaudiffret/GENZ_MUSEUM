@@ -12,5 +12,5 @@ wheels/
 # Secrets
 .env
 
-# Archived profiles
-old-profiles/
+# Runtime user session
+docs/session.json

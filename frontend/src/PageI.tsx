@@ -5,11 +5,10 @@ const MAX_PX = 1600
 const JPEG_QUALITY = 0.85
 const ONBOARDED_KEY = 'genz-museum-onboarded'
 
-const LANGUAGE_OPTIONS = ['Français', 'English']
 const AGE_OPTIONS = ['Enfant (-12 ans)', 'Ado (12-17 ans)', 'Adulte (18-64 ans)', 'Senior (65 ans et +)']
 const LEVEL_OPTIONS = ['Novice', 'Amateur', 'Expert']
 const INTEREST_OPTIONS = ['Histoire et contexte', 'Anecdotes insolites', 'Technique artistique', 'Symbolisme et interprétation']
-const TONE_OPTIONS = ['Ludique et accessible', 'Équilibré', 'Sérieux et académique']
+const TONE_OPTIONS = ['Ludique', 'Sérieux']
 
 function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -62,7 +61,7 @@ export default function PageI({ onArtistFound, onNewProfile, hidden }: {
       const res = await fetch('/analyze', { method: 'POST', body: form })
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data: ArtworkSummary = await res.json()
-      if (data.artist_id && !data.from_cache) onArtistFound(data.artist_id)
+      if (data.artist_id && !data.in_session) onArtistFound(data.artist_id)
       setNarrateState('idle')
       setState({ status: 'result', preview, data })
       prefetchAudio(data)
@@ -124,7 +123,7 @@ export default function PageI({ onArtistFound, onNewProfile, hidden }: {
 
   return (
     <div style={{ ...s.page, display: hidden ? 'none' : 'flex' }}>
-      <h1 style={s.h1}>Analyse d'œuvre</h1>
+      <h1 style={s.h1}>Scanner une œuvre</h1>
 
       {state.status === 'onboarding' && (
         <Onboarding onDone={() => { localStorage.setItem(ONBOARDED_KEY, '1'); setState({ status: 'idle' }) }} />
@@ -140,14 +139,17 @@ export default function PageI({ onArtistFound, onNewProfile, hidden }: {
       />
 
       {state.status === 'idle' && (
-        <>
-          <button style={s.btn} onClick={() => inputRef.current?.click()}>
-            📷 Prendre une photo
+        <div style={s.idleWrap}>
+          <button style={s.cameraBtn} onClick={() => inputRef.current?.click()}>
+            <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+              <path d="M9.5 4.5L8 7H3a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 3 22h22a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 25 7h-5l-1.5-2.5z" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" fill="none"/>
+              <circle cx="14" cy="14" r="4.5" stroke="#fff" strokeWidth="1.6"/>
+              <circle cx="22.5" cy="9.5" r="1" fill="#fff"/>
+            </svg>
           </button>
-          <button style={s.btnSecondary} onClick={newProfile}>
-            🔄 Nouveau profil
-          </button>
-        </>
+          <span style={s.cameraLabel}>Photographier</span>
+          <button style={s.btnSecondary} onClick={newProfile}>Nouveau profil</button>
+        </div>
       )}
 
       {state.status !== 'idle' && state.status !== 'onboarding' && (
@@ -176,18 +178,17 @@ export default function PageI({ onArtistFound, onNewProfile, hidden }: {
 }
 
 function Onboarding({ onDone }: { onDone: () => void }) {
-  const [language, setLanguage] = useState<string | null>(null)
   const [ageRange, setAgeRange] = useState<string | null>(null)
   const [level, setLevel] = useState<string | null>(null)
   const [interests, setInterests] = useState<string[]>([])
   const [tone, setTone] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const canSubmit = language !== null && ageRange !== null && level !== null && tone !== null && !submitting
+  const canSubmit = ageRange !== null && level !== null && tone !== null && !submitting
 
   async function submit() {
     if (!canSubmit) return
     setSubmitting(true)
-    const profile: VisitorProfile = { language: language!, age_range: ageRange!, level: level!, interests, tone: tone! }
+    const profile: VisitorProfile = { age_range: ageRange!, level: level!, interests, tone: tone! }
     try {
       await fetch('/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profile) })
     } finally {
@@ -198,13 +199,12 @@ function Onboarding({ onDone }: { onDone: () => void }) {
   return (
     <div style={s.col}>
       <p style={s.dim}>Quelques questions pour adapter le guide à toi.</p>
-      <Choice label="Langue / Language" options={LANGUAGE_OPTIONS} value={language} onChange={setLanguage} />
       <Choice label="Ton âge" options={AGE_OPTIONS} value={ageRange} onChange={setAgeRange} />
       <Choice label="Ton niveau en art" options={LEVEL_OPTIONS} value={level} onChange={setLevel} />
       <MultiChoice label="Ce qui t'intéresse" options={INTEREST_OPTIONS} values={interests}
         onToggle={(i) => setInterests((p) => p.includes(i) ? p.filter((x) => x !== i) : [...p, i])} />
       <Choice label="Le ton que tu préfères" options={TONE_OPTIONS} value={tone} onChange={setTone} />
-      <button style={{ ...s.btn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit} onClick={submit}>
+      <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.45 }} disabled={!canSubmit} onClick={submit}>
         {submitting ? 'Préparation…' : 'Commencer la visite'}
       </button>
     </div>
@@ -215,9 +215,9 @@ function Choice({ label, options, value, onChange }: {
   label: string; options: string[]; value: string | null; onChange: (v: string) => void
 }) {
   return (
-    <div style={s.card}>
-      <div style={s.cardLabel}>{label}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div style={s.group}>
+      <div style={s.groupLabel}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
         {options.map((opt) => (
           <button key={opt} type="button"
             style={{ ...s.chip, ...(value === opt ? s.chipOn : {}) }}
@@ -232,9 +232,9 @@ function MultiChoice({ label, options, values, onToggle }: {
   label: string; options: string[]; values: string[]; onToggle: (v: string) => void
 }) {
   return (
-    <div style={s.card}>
-      <div style={s.cardLabel}>{label}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div style={s.group}>
+      <div style={s.groupLabel}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
         {options.map((opt) => (
           <button key={opt} type="button"
             style={{ ...s.chip, ...(values.includes(opt) ? s.chipOn : {}) }}
@@ -246,27 +246,38 @@ function MultiChoice({ label, options, values, onToggle }: {
 }
 
 const NARRATE_LABEL: Record<string, string> = {
-  loading: '⏳ Préparation audio…',
-  ready: '▶ Écouter le résumé',
-  playing: '⏸ Pause',
-  paused: '▶ Reprendre',
-  done: '🔁 Réécouter',
-  error: '⚠️ Narration indisponible',
+  loading: 'Chargement…',
+  ready: '▷  Écouter',
+  playing: '⏸  Pause',
+  paused: '▷  Reprendre',
+  done: '↺  Réécouter',
+  error: 'Narration indisponible',
 }
+
+const NARRATE_ACTIVE = new Set(['ready', 'playing', 'paused', 'done'])
 
 function Result({ data, onReset, narrateState, onPlay }: {
   data: ArtworkSummary; onReset: () => void; narrateState: NarrateState; onPlay: () => void
 }) {
-  const canTap = narrateState === 'ready' || narrateState === 'playing' || narrateState === 'paused' || narrateState === 'done'
+  const canTap = NARRATE_ACTIVE.has(narrateState)
   return (
     <div style={s.col}>
       {narrateState !== 'idle' && (
-        <button style={{ ...s.audioBtn, opacity: canTap ? 1 : 0.5 }} disabled={!canTap} onClick={onPlay}>
+        <button
+          style={{
+            ...s.audioBtn,
+            opacity: canTap ? 1 : 0.45,
+            color: canTap ? '#a67c2a' : '#1c1812',
+            borderColor: canTap ? '#c9a84c66' : '#e4ddd3',
+          }}
+          disabled={!canTap}
+          onClick={onPlay}
+        >
           {NARRATE_LABEL[narrateState]}
         </button>
       )}
-      <Card label="Titre probable" value={data.titre_probable ?? '—'} large />
-      <Card label="Artiste probable" value={data.artiste_probable ?? '—'} large />
+      <Card label="Titre" value={data.titre_probable ?? '—'} large />
+      <Card label="Artiste" value={data.artiste_probable ?? '—'} large />
       <Card label="Style" value={data.style} />
       {data.epoque && <Card label="Époque" value={data.epoque} />}
       {data.technique && <Card label="Technique" value={data.technique} />}
@@ -274,16 +285,13 @@ function Result({ data, onReset, narrateState, onPlay }: {
       <Card label="Ambiance" value={data.ambiance} />
       <Card label="Sujets"><Chips items={data.sujets} /></Card>
       <Card label="Couleurs dominantes">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 2 }}>
           {data.couleurs_dominantes.map((c) => (
-            <span key={c} style={s.colorChip}>
-              <span style={{ ...s.dot, background: c.toLowerCase(), border: '1px solid rgba(255,255,255,.2)' }} />
-              {c}
-            </span>
+            <span key={c} style={{ ...s.dot, background: c.toLowerCase(), border: '1px solid rgba(0,0,0,.1)' }} />
           ))}
         </div>
       </Card>
-      <button style={{ ...s.btn, marginTop: 8 }} onClick={onReset}>📷 Nouvelle photo</button>
+      <button style={{ ...s.btn, marginTop: 4 }} onClick={onReset}>Nouvelle photo</button>
     </div>
   )
 }
@@ -308,24 +316,43 @@ function Chips({ items }: { items: string[] }) {
   )
 }
 
+const PLAYFAIR = "'Playfair Display', Georgia, serif"
+const SANS = "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
+
 const s = {
-  page: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '1.2rem', padding: '2rem 1.2rem 1rem', width: '100%', maxWidth: 500, margin: '0 auto' },
-  col: { width: '100%', display: 'flex', flexDirection: 'column' as const, gap: '.75rem' },
-  h1: { fontSize: '1.4rem', fontWeight: 600, letterSpacing: '.02em', marginBottom: '.5rem' },
-  btn: { background: '#fff', color: '#111', border: 'none', borderRadius: 50, padding: '.85rem 2rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', width: '100%', maxWidth: 300 },
-  btnSecondary: { background: 'none', color: '#f0f0f0', border: '1px solid #333', borderRadius: 50, padding: '.7rem 2rem', fontSize: '.9rem', fontWeight: 500, cursor: 'pointer', width: '100%', maxWidth: 300 },
-  audioBtn: { background: '#1c1c1c', color: '#f0f0f0', border: '1px solid #333', borderRadius: 50, padding: '.7rem 1.6rem', fontSize: '1rem', cursor: 'pointer', width: '100%', textAlign: 'center' as const },
-  preview: { width: '100%', borderRadius: 14, objectFit: 'cover' as const, maxHeight: 340 },
-  spinnerWrap: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 12 },
-  spinner: { width: 44, height: 44, border: '4px solid #333', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .8s linear infinite' },
-  dim: { opacity: 0.5, fontSize: '.9rem' },
-  error: { color: '#ff6b6b', textAlign: 'center' as const },
-  card: { background: '#1c1c1c', borderRadius: 14, padding: '1rem 1.2rem' },
-  cardLabel: { fontSize: '.68rem', textTransform: 'uppercase' as const, letterSpacing: '.1em', opacity: 0.45, marginBottom: 4 },
-  cardVal: { fontSize: '1rem', lineHeight: 1.55 },
-  cardLg: { fontSize: '1.15rem', fontWeight: 600, lineHeight: 1.4 },
-  chip: { background: '#2a2a2a', color: '#f0f0f0', border: '1px solid transparent', borderRadius: 20, padding: '4px 10px', fontSize: '.85rem', cursor: 'pointer' },
-  chipOn: { background: '#fff', color: '#111', border: '1px solid #fff' },
-  colorChip: { background: '#2a2a2a', borderRadius: 20, padding: '4px 10px', fontSize: '.85rem', display: 'flex', alignItems: 'center', gap: 6 },
-  dot: { width: 12, height: 12, borderRadius: '50%', flexShrink: 0 },
+  page: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '1.5rem', padding: '2rem 1.2rem 1rem', width: '100%', maxWidth: 500, margin: '0 auto' },
+  col: { width: '100%', display: 'flex', flexDirection: 'column' as const, gap: '1rem' },
+  h1: { fontFamily: PLAYFAIR, fontSize: '1.6rem', fontWeight: 400, letterSpacing: '.01em', color: '#1c1812' },
+
+  idleWrap: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '1rem', paddingTop: '1.5rem' },
+  cameraBtn: {
+    width: 80, height: 80, borderRadius: '50%',
+    background: 'linear-gradient(135deg, #c9a84c, #a67c2a)',
+    border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', boxShadow: '0 4px 20px rgba(166,124,42,.35)',
+  },
+  cameraLabel: { fontFamily: SANS, fontSize: '.65rem', letterSpacing: '.15em', textTransform: 'uppercase' as const, color: '#1c1812', opacity: 0.45 },
+  btn: { background: '#1c1812', color: '#f7f4ef', border: 'none', borderRadius: 8, padding: '.85rem 2rem', fontSize: '.88rem', fontWeight: 600, letterSpacing: '.04em', cursor: 'pointer', width: '100%', maxWidth: 320, fontFamily: SANS },
+  btnSecondary: { background: 'none', color: '#1c1812', border: 'none', fontSize: '.75rem', opacity: 0.35, cursor: 'pointer', textDecoration: 'underline' as const, fontFamily: SANS },
+  audioBtn: { background: '#ffffff', border: '1px solid', borderRadius: 8, padding: '.65rem 1.4rem', fontSize: '.82rem', letterSpacing: '.05em', cursor: 'pointer', width: '100%', textAlign: 'center' as const, fontFamily: SANS, transition: 'color .15s, border-color .15s', boxShadow: '0 1px 4px rgba(0,0,0,.06)' },
+  preview: { width: '100%', borderRadius: 10, objectFit: 'cover' as const, aspectRatio: '4/3' as const, boxShadow: '0 2px 16px rgba(0,0,0,.1)' },
+  spinnerWrap: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 14 },
+  spinner: { width: 40, height: 40, border: '3px solid #e4ddd3', borderTopColor: '#c9a84c', borderRadius: '50%', animation: 'spin .8s linear infinite' },
+  dim: { opacity: 0.45, fontSize: '.88rem', fontFamily: SANS, color: '#1c1812' },
+  error: { color: '#c0392b', textAlign: 'center' as const, fontSize: '.9rem', fontFamily: SANS },
+
+  card: { background: '#ffffff', border: '1px solid #e8e2d8', borderRadius: 10, padding: '1rem 1.2rem', boxShadow: '0 1px 4px rgba(0,0,0,.05)' },
+  cardLabel: { fontFamily: PLAYFAIR, fontStyle: 'italic', fontSize: '.65rem', letterSpacing: '.1em', color: '#1c1812', opacity: 0.38, marginBottom: 5 },
+  cardVal: { fontSize: '.95rem', lineHeight: 1.6, fontFamily: SANS, color: '#1c1812' },
+  cardLg: { fontFamily: PLAYFAIR, fontSize: '1.25rem', fontWeight: 400, lineHeight: 1.35, color: '#1c1812' },
+
+  group: { display: 'flex', flexDirection: 'column' as const, gap: 10 },
+  groupLabel: { fontFamily: PLAYFAIR, fontStyle: 'italic', fontSize: '.7rem', letterSpacing: '.06em', color: '#1c1812', opacity: 0.5 },
+
+  chip: { background: '#f0ece4', color: '#1c1812', border: '1px solid #e4ddd3', borderRadius: 6, padding: '5px 12px', fontSize: '.82rem', cursor: 'pointer', fontFamily: SANS },
+  chipOn: { background: '#1c1812', color: '#f7f4ef', border: '1px solid #1c1812' },
+
+  submitBtn: { width: '100%', background: '#1c1812', color: '#f7f4ef', border: 'none', borderRadius: 8, padding: '.9rem', fontSize: '.88rem', letterSpacing: '.06em', fontWeight: 600, cursor: 'pointer', fontFamily: SANS },
+
+  dot: { width: 18, height: 18, borderRadius: '50%', flexShrink: 0, display: 'inline-block' },
 } as const

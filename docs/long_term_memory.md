@@ -1,7 +1,5 @@
-# Mémoire long terme — Profil du visiteur
+# Long-term memory — Visitor profile
 
-- Langue : Français
-- Tranche d'âge : Enfant (-12 ans)
-- Niveau en art : Amateur
-- Centres d'intérêt : Histoire et contexte
-- Ton souhaité : Ludique et accessible
+Persona: fun
+
+The visitor prefers a playful, accessible tone. Favor surprising anecdotes, fun comparisons and a lively, light narration.

@@ -1,0 +1,24 @@
+{
+  "titre_probable": null,
+  "artiste_probable": null,
+  "style": "Photographie de la vie quotidienne",
+  "epoque": "Années 2020",
+  "technique": "Photographie numérique",
+  "description": "Coucou ! Ce n'est pas une peinture ancienne dans un musée, mais une photo prise dans un salon ! On y voit un jeune homme installé confortablement sur un canapé gris. Il porte un grand t-shirt blanc, des lunettes et un gros casque audio noir sur les oreilles : il écoute sûrement de la musique ou joue à un jeu, super concentré ! Derrière lui, on aperçit un joli arbuste en forme de boule, un radiateur blanc, des coussins jaune et vert, et même un tableau accroché au mur qui montre des arches comme un vieux pont. C'est une scène toute simple de la vie de tous les jours, comme un petit moment de détente capturé pour toujours.",
+  "couleurs_dominantes": [
+    "blanc",
+    "gris",
+    "vert",
+    "jaune moutarde",
+    "noir"
+  ],
+  "ambiance": "Calme et détendue, comme un moment cosy à la maison où l'on se repose tranquillement.",
+  "sujets": [
+    "scène de la vie quotidienne",
+    "portrait",
+    "intérieur",
+    "loisirs"
+  ],
+  "artist_id": null,
+  "_phash": "8cac86c35919300c"
+}
