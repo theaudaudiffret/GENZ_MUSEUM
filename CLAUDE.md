@@ -83,7 +83,7 @@ Requires `.env` with `ANTHROPIC_API_KEY` and `ELEVENLABS_API_KEY`. Python ≥ 3.
 ## Architecture
 
 **Backend** (`backend/`, FastAPI):
-- `server.py` — routes (`/analyze`, `/narrate`, `/profile`, `/new-profile`, `/library`, `/photos/{key}`, `/audio/{key}`) + storage helpers.
+- `server.py` — routes (`/analyze`, `/narrate`, `/immersive`, `/profile`, `/new-profile`, `/library`, `/artwork/{key}`, `/photos/{key}`, `/audio/{key}`, `/immersive-audio/{key}`) + storage helpers. `/artwork/{key}` returns the full stored artwork JSON (feeds the library detail modal). Wikipedia image fetch uses async `httpx` + `curl` fallback (upload.wikimedia.org blocks Python TLS).
 - `analyzer.py` — Claude vision → artwork JSON (system prompt `docs/prompt.md`, strict `json_schema`).
 - `dedup.py` — **Claude dedup agent**: given a new artwork + the persona DB entries, returns the matching `key` or null (semantic match, e.g. "La Joconde" = "Mona Lisa").
 - `narrator.py` — Claude narration text (prompt `docs/narration_prompt.md`) → ElevenLabs audio; also appends to short-term memory.
@@ -93,7 +93,7 @@ Requires `.env` with `ANTHROPIC_API_KEY` and `ELEVENLABS_API_KEY`. Python ≥ 3.
 **Frontend** (`frontend/src/`, React + Vite, inline-style components):
 - `App.tsx` — tab shell + quest progress (localStorage `genz-museum-progress`). `PageI` stays mounted (hidden via `display`) so the last analysis survives tab switches; other pages remount to refresh.
 - `PageI.tsx` — onboarding questionnaire + camera/scan/result flow. Onboarding shows only when not yet onboarded (localStorage `genz-museum-onboarded`) or after "Nouveau profil".
-- `PageII.tsx` — museum/artist quest collection. `PageBiblio.tsx` — session library. `data.ts` — museums/artists/levels.
+- `PageII.tsx` — museum/artist quest collection. `PageBiblio.tsx` — session library; tapping a row opens an artwork detail modal (full photo + époque/technique + description via `/artwork/{key}`) with an in-modal play button. `data.ts` — museums/artists/levels.
 
 ## Data model — two decoupled tiers
 

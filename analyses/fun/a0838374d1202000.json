@@ -1,0 +1,24 @@
+{
+  "titre_probable": "Mona Lisa (La Gioconda)",
+  "artiste_probable": "Leonardo da Vinci",
+  "style": "Italian Renaissance (High Renaissance)",
+  "epoque": "early 16th century (c. 1503-1506)",
+  "technique": "oil on poplar wood panel (here reproduced on a playing card, the Ace of Spades)",
+  "description": "Meet the world's most famous side-eye! This is the legendary Mona Lisa, cheekily printed on an Ace of Spades and held up between someone's fingers (with a sneaky laptop showing API Keys in the background, very 21st century). The lady sits in a calm three-quarter pose, hands once gently folded, with that mysterious half-smile that has launched a thousand debates. Behind her winds a dreamy, misty landscape of hills, rivers and winding paths, blurred by Leonardo's signature sfumato 'smoky' technique. On this card version the colors lean golden-green, giving her a slightly otherworldly glow, like she's been filtered through a vintage Instagram preset.",
+  "couleurs_dominantes": [
+    "golden ochre",
+    "olive green",
+    "dark brown",
+    "muted yellow",
+    "cream"
+  ],
+  "ambiance": "Calm, enigmatic and quietly amused — she looks like she knows a secret she'll never tell, the ultimate poker face on, fittingly, a playing card.",
+  "sujets": [
+    "portrait",
+    "female figure",
+    "landscape background",
+    "Renaissance iconography"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_key": "a0838374d1202000"
+}
