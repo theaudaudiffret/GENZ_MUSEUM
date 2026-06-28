@@ -246,7 +246,7 @@ export default function PageI({ onArtistFound, onNewProfile, hidden }: {
 
       {state.status === 'idle' && (
         <div style={s.idleWrap}>
-          <h1 style={s.appTitle}>AletheAI</h1>
+          <h1 style={s.appTitle}>Animart.ai</h1>
           <button style={s.cameraBtn} onClick={() => inputRef.current?.click()}>
             <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
               <path d="M9.5 4.5L8 7H3a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 3 22h22a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 25 7h-5l-1.5-2.5z" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" fill="none"/>
@@ -600,23 +600,27 @@ function fmtTime(sec: number): string {
 
 function Scrubber({ frac, onSeek }: { frac: number; onSeek: (fraction: number) => void }) {
   const trackRef = useRef<HTMLDivElement>(null)
-  const seeking = useRef(false)
+  const dragging = useRef(false)
+  // While dragging, show the finger position and ignore live playback updates,
+  // which would otherwise snap the bar back on every timeupdate. Commit on release.
+  const [dragFrac, setDragFrac] = useState<number | null>(null)
   function fractionAt(clientX: number) {
     const el = trackRef.current
     if (!el) return 0
     const r = el.getBoundingClientRect()
     return Math.min(1, Math.max(0, (clientX - r.left) / r.width))
   }
+  const shown = dragFrac ?? frac
   return (
     <div
       ref={trackRef}
       style={s.scrubTrack}
-      onPointerDown={(e) => { seeking.current = true; e.currentTarget.setPointerCapture(e.pointerId); onSeek(fractionAt(e.clientX)) }}
-      onPointerMove={(e) => { if (seeking.current) onSeek(fractionAt(e.clientX)) }}
-      onPointerUp={(e) => { seeking.current = false; e.currentTarget.releasePointerCapture(e.pointerId) }}
+      onPointerDown={(e) => { dragging.current = true; e.currentTarget.setPointerCapture(e.pointerId); setDragFrac(fractionAt(e.clientX)) }}
+      onPointerMove={(e) => { if (dragging.current) setDragFrac(fractionAt(e.clientX)) }}
+      onPointerUp={(e) => { if (dragging.current) { dragging.current = false; onSeek(fractionAt(e.clientX)); setDragFrac(null) } e.currentTarget.releasePointerCapture(e.pointerId) }}
     >
-      <div style={{ ...s.scrubFill, width: `${frac * 100}%` }} />
-      <div style={{ ...s.scrubKnob, left: `${frac * 100}%` }} />
+      <div style={{ ...s.scrubFill, width: `${shown * 100}%` }} />
+      <div style={{ ...s.scrubKnob, left: `${shown * 100}%` }} />
     </div>
   )
 }
