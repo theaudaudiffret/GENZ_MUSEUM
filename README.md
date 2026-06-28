@@ -1,6 +1,6 @@
-# Musées — AI museum guide
+# Animart.ai
 
-Mobile-first web app for museum visits. A visitor photographs an artwork; **Claude** analyzes it and produces structured metadata. The app then offers two audio experiences — a **personalized narration** or an **immersive scene** — via **ElevenLabs**, adapted to a visitor persona. Gamification tracks artist **quests** and builds a personal **library** of scanned works.
+AI-powered museum guide. A visitor photographs an artwork; **Claude** analyzes it and produces structured metadata. The app then offers two audio experiences — a **personalized narration** or an **immersive scene** — via **ElevenLabs**, adapted to a visitor persona. Gamification tracks artist **quests** and builds a personal **library** of scanned works.
 
 All generated text and audio is in **English**. JSON field names in the analysis schema are French (`titre_probable`, `artiste_probable`, …) — internal keys only.
 
@@ -34,82 +34,123 @@ All generated text and audio is in **English**. JSON field names in the analysis
 
 ## Architecture
 
+### Code file graph
+
+How source files connect at runtime (arrows = imports, HTTP calls, or reads/writes):
+
+```
+                         ┌── docs/prompt.md
+                         │
+frontend/src/            │         ┌── docs/narration_prompt.md
+─────────────            │         │
+App.tsx                  │    ┌────┴──── narrator.py ──► ElevenLabs
+ ├─► PageI.tsx ──────────┼───►│
+ ├─► PageII.tsx ────────┼───►│         ┌── immersive_scene/pipeline.py
+ └─► PageBiblio.tsx ─────┼───►├── server.py ◄── immersive.py ──┘
+        │                │    │      │
+        ├─► data.ts      │    │      ├── analyzer.py
+        ├─► cityData.ts  │    │      ├── dedup.py
+        └─► types.ts     │    │      ├── matcher.py
+                         │    │      └── profile.py ──► docs/long_term_memory.md
+                         │    │
+                         │    ├── reads/writes ──► docs/session.json
+                         │    │
+                         │    └── reads/writes ──► analyses/serious|fun/
+                         │                              ├── {key}.json
+                         │                              ├── photos/
+                         │                              ├── audio/
+                         │                              └── immersive/
+                         │
+                         └── (this README documents the graph above)
+```
+
 ### System context
 
 ```mermaid
 flowchart LR
-  Browser["Browser\n(React SPA)"]
-  FastAPI["backend/server.py\nFastAPI + frontend/dist"]
+  Browser["Browser React SPA"]
+  Server["backend/server.py"]
   Claude["Anthropic Claude"]
   ElevenLabs["ElevenLabs"]
-  Wikipedia["Wikipedia API"]
+  Wiki["Wikipedia API"]
 
-  Browser <-->|HTTP| FastAPI
-  FastAPI --> Claude
-  FastAPI --> ElevenLabs
-  FastAPI --> Wikipedia
+  Browser <-->|HTTP| Server
+  Server --> Claude
+  Server --> ElevenLabs
+  Server --> Wiki
 ```
 
 ### Module map
 
-Relationships between the main source files. Prompts live in `docs/`; runtime data in `analyses/` and `docs/session.json`.
-
 ```mermaid
 flowchart TB
-  subgraph frontend["frontend/src"]
+  subgraph FE["frontend/src"]
     App["App.tsx"]
-    PageI["PageI.tsx"]
-    PageII["PageII.tsx"]
-    PageBiblio["PageBiblio.tsx"]
-    data["data.ts"]
-    cityData["cityData.ts"]
-    types["types.ts"]
-    App --> PageI & PageII & PageBiblio
-    PageI --> data & cityData & types
-    PageII --> data
-    PageBiblio --> data
+    P1["PageI.tsx"]
+    P2["PageII.tsx"]
+    PB["PageBiblio.tsx"]
+    DT["data.ts"]
+    CD["cityData.ts"]
+    TP["types.ts"]
+    App --> P1
+    App --> P2
+    App --> PB
+    P1 --> DT
+    P1 --> CD
+    P1 --> TP
+    P2 --> DT
+    PB --> DT
   end
 
-  subgraph backend["backend/"]
-    server["server.py"]
-    analyzer["analyzer.py"]
-    dedup["dedup.py"]
-    narrator["narrator.py"]
-    immersive["immersive.py"]
-    matcher["matcher.py"]
-    profile["profile.py"]
-    main_cli["main.py\n(optional CLI)"]
-    server --> analyzer & dedup & narrator & immersive & matcher & profile
-    main_cli --> analyzer
+  subgraph BE["backend"]
+    SRV["server.py"]
+    AN["analyzer.py"]
+    DD["dedup.py"]
+    NR["narrator.py"]
+    IM["immersive.py"]
+    MT["matcher.py"]
+    PR["profile.py"]
+    SRV --> AN
+    SRV --> DD
+    SRV --> NR
+    SRV --> IM
+    SRV --> MT
+    SRV --> PR
   end
 
-  subgraph immersive_pkg["immersive_scene/"]
-    pipeline["pipeline.py"]
-    prompts["prompts.py"]
-    voices["voices.py · voice_catalog.json"]
-    pipeline --> prompts & voices
+  subgraph IS["immersive_scene"]
+    PL["pipeline.py"]
+    PM["prompts.py"]
+    VC["voice_catalog.json"]
+    PL --> PM
+    PL --> VC
   end
 
-  subgraph docs["docs/"]
-    prompt_md["prompt.md"]
-    narration_md["narration_prompt.md"]
-    session["session.json"]
-    longterm["long_term_memory.md"]
+  subgraph DC["docs"]
+    DP["prompt.md"]
+    DN["narration_prompt.md"]
+    SJ["session.json"]
+    LM["long_term_memory.md"]
   end
 
-  subgraph storage["analyses/{serious,fun}/"]
-    json["{key}.json"]
-    photos["photos/"]
-    audio["audio/"]
-    imm["immersive/"]
+  subgraph ST["analyses per persona"]
+    JS["key.json"]
+    PH["photos/"]
+    AU["audio/"]
+    IV["immersive/"]
   end
 
-  PageI & PageII & PageBiblio -->|HTTP| server
-  analyzer --> prompt_md
-  narrator --> narration_md & longterm
-  profile --> longterm
-  immersive --> pipeline
-  server --> storage & session & longterm
+  P1 --> SRV
+  P2 --> SRV
+  PB --> SRV
+  AN --> DP
+  NR --> DN
+  NR --> LM
+  PR --> LM
+  IM --> PL
+  SRV --> ST
+  SRV --> SJ
+  SRV --> LM
 ```
 
 ### Scan flow
@@ -122,44 +163,42 @@ sequenceDiagram
   participant Vision as analyzer.py
   participant Dedup as dedup.py
   participant Match as matcher.py
-  participant DB as analyses/{persona}/
+  participant DB as persona DB
   participant Session as session.json
 
   User->>PageI: Take photo
   PageI->>API: POST /analyze
-  API->>Vision: analyze_artwork()
+  API->>Vision: analyze_artwork
   Vision-->>API: artwork JSON
-  API->>Match: match_artist()
-  API->>Dedup: find_existing_artwork()
+  API->>Match: match_artist
+  API->>Dedup: find_existing_artwork
   alt persona DB hit
     Dedup-->>API: existing key
     API->>DB: load cached JSON
   else new work
     Dedup-->>API: null
-    API->>DB: save {key}.json + photo
+    API->>DB: save JSON and photo
   end
   API->>Session: append if not in_session
-  API-->>PageI: JSON + from_cache + in_session + artist_id
+  API-->>PageI: JSON response
   User->>PageI: Narrate or immersive
   PageI->>API: POST /narrate or /immersive
   API->>DB: reuse or generate audio
-  API-->>PageI: MP3 (+ captions if immersive)
+  API-->>PageI: MP3 and captions
 ```
 
 ### Data model
 
-Two decoupled tiers: a **shared persona cache** and a **per-visitor session**.
-
 ```mermaid
 flowchart TB
-  subgraph persona_db["Persona DB — shared, persistent"]
-    P1["analyses/serious/"]
-    P2["analyses/fun/"]
+  subgraph persona_db["Persona DB shared persistent"]
+    Pserious["analyses/serious"]
+    Pfun["analyses/fun"]
   end
 
-  subgraph user_session["User session — cleared by POST /new-profile"]
-    S["docs/session.json"]
-    L["docs/long_term_memory.md"]
+  subgraph user_session["User session reset by new-profile"]
+    Sess["docs/session.json"]
+    Ltm["docs/long_term_memory.md"]
   end
 
   Scan["New scan"] --> persona_db
