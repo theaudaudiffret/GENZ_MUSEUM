@@ -1,8 +1,6 @@
 import asyncio
 import json
 import socket
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
 import cv2
@@ -86,49 +84,58 @@ def _reset_session_and_memories() -> None:
 
 # ─── Image Wikipedia ──────────────────────────────────────────────────────────
 
-_HEADERS = {"User-Agent": "MuseesApp/1.0 (educational; contact@example.com)"}
-
-
-def _wiki_get(url: str, timeout: int = 6) -> bytes:
-    req = urllib.request.Request(url, headers=_HEADERS)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
-
-
-def _fetch_artwork_image_sync(titre: str, artiste: str | None) -> bytes | None:
-    query = f"{titre} {artiste or ''}".strip()
-    try:
-        params = urllib.parse.urlencode({
-            "action": "query", "list": "search",
-            "srsearch": query, "format": "json", "srlimit": 1,
-        })
-        results = json.loads(_wiki_get(
-            f"https://en.wikipedia.org/w/api.php?{params}"
-        )).get("query", {}).get("search", [])
-        if not results:
-            return None
-        page_title = results[0]["title"]
-
-        params = urllib.parse.urlencode({
-            "action": "query", "titles": page_title,
-            "prop": "pageimages", "format": "json", "pithumbsize": 1200,
-        })
-        pages = json.loads(_wiki_get(
-            f"https://en.wikipedia.org/w/api.php?{params}"
-        )).get("query", {}).get("pages", {})
-        thumb_url = next(iter(pages.values())).get("thumbnail", {}).get("source")
-        if not thumb_url:
-            return None
-
-        return _wiki_get(thumb_url, timeout=10)
-    except Exception:
-        return None
+_WIKI_UA = "MuseesApp/1.0 (educational; contact@example.com)"
 
 
 async def _fetch_artwork_image(titre: str | None, artiste: str | None) -> bytes | None:
     if not titre:
         return None
-    return await asyncio.to_thread(_fetch_artwork_image_sync, titre, artiste)
+    import httpx
+    import subprocess
+
+    thumb_url: str | None = None
+    try:
+        async with httpx.AsyncClient(headers={"User-Agent": _WIKI_UA}, timeout=8, follow_redirects=True) as client:
+            # Try REST summary first
+            slug = titre.replace(" ", "_")
+            r = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}")
+            if r.status_code == 200:
+                thumb_url = (r.json().get("thumbnail") or {}).get("source")
+
+            # Fallback: search API + pageimages
+            if not thumb_url:
+                query = f"{titre} {artiste or ''}".strip()
+                r = await client.get("https://en.wikipedia.org/w/api.php", params={
+                    "action": "query", "list": "search",
+                    "srsearch": query, "format": "json", "srlimit": 1,
+                })
+                results = r.json().get("query", {}).get("search", [])
+                if results:
+                    r = await client.get("https://en.wikipedia.org/w/api.php", params={
+                        "action": "query", "titles": results[0]["title"],
+                        "prop": "pageimages", "format": "json", "pithumbsize": 800,
+                    })
+                    pages = r.json().get("query", {}).get("pages", {})
+                    thumb_url = next(iter(pages.values())).get("thumbnail", {}).get("source")
+    except Exception:
+        pass
+
+    if not thumb_url:
+        return None
+
+    # upload.wikimedia.org blocks Python TLS — use curl
+    try:
+        result = await asyncio.to_thread(
+            subprocess.run,
+            ["curl", "-sL", "--max-time", "10", thumb_url],
+            capture_output=True,
+        )
+        img = result.stdout
+        if img and len(img) > 5000:
+            return img
+    except Exception:
+        pass
+    return None
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
@@ -236,6 +243,14 @@ async def library_route():
             "has_audio": (pdir / "audio" / f"{key}.mp3").exists(),
         })
     return JSONResponse(items)
+
+
+@app.get("/artwork/{key}")
+async def get_artwork(key: str):
+    f = _persona_dir(load_persona()) / f"{key}.json"
+    if not f.exists():
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return JSONResponse(json.loads(f.read_text(encoding="utf-8")))
 
 
 @app.get("/photos/{key}")

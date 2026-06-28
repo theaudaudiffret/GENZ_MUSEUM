@@ -1,0 +1,24 @@
+{
+  "titre_probable": "Mona Lisa",
+  "artiste_probable": "Leonardo da Vinci",
+  "style": "High Renaissance",
+  "epoque": "early 16th century (c. 1503-1506)",
+  "technique": "oil on poplar panel (here reproduced on a playing card, the Ace of Spades!)",
+  "description": "Meet the world's most famous half-smile, now moonlighting as the Ace of Spades! This little card shows the legendary portrait of Lisa Gherardini, sitting calmly with hands folded, against a dreamy, misty landscape of winding rivers and hazy mountains. Notice the famous 'sfumato' trick: Leonardo blurred the edges of her mouth and eyes so softly that her expression seems to change depending on where you look. The original lives behind bulletproof glass at the Louvre, but this pocket-sized celebrity fits right in your hand of cards. Fun fact: when she was stolen in 1911, the empty wall got more visitors than the painting ever had!",
+  "couleurs_dominantes": [
+    "olive green",
+    "golden ochre",
+    "warm brown",
+    "muted black",
+    "cream"
+  ],
+  "ambiance": "Calm, mysterious and a little cheeky, like she knows a secret she'll never tell you, even while doubling as a winning card.",
+  "sujets": [
+    "portrait",
+    "woman",
+    "landscape",
+    "Renaissance icon"
+  ],
+  "artist_id": "leonard-de-vinci",
+  "_key": "b680c924c0244010"
+}

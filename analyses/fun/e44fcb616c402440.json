@@ -1,0 +1,24 @@
+{
+  "titre_probable": "Portrait of Dr. Gachet",
+  "artiste_probable": "Vincent van Gogh",
+  "style": "Post-Impressionism",
+  "epoque": "1890",
+  "technique": "Oil on canvas",
+  "description": "Surprise! This masterpiece is hiding on a 10 of Clubs playing card! Meet Dr. Gachet, Van Gogh's real-life physician in his final months, caught in the ultimate 'tired-of-this-week' pose: chin propped on his hand, elbow on a red table, head tilted in pure melancholy. He's rocking a jaunty white cap and a deep blue jacket that practically melts into the swirling blue mountainous background. On the table sit some foxglove flowers (a nod to medicine!) and a couple of books. The whole thing pulses with Van Gogh's signature thick, twisty brushstrokes that make the paint look almost alive. Fun fact: a version of this very painting once sold for a jaw-dropping fortune, making it one of the most expensive artworks ever — not bad for a guy who looks like he just remembered he left the stove on!",
+  "couleurs_dominantes": [
+    "blue",
+    "red",
+    "cream white",
+    "skin tones",
+    "dark navy"
+  ],
+  "ambiance": "Brooding, dreamy, and a little bit blue (literally and emotionally). There's a gentle sadness here — the doctor seems lost in thought, mirroring Van Gogh's own famous melancholy, yet the energetic brushwork keeps everything buzzing with restless life.",
+  "sujets": [
+    "portrait",
+    "medicine",
+    "melancholy",
+    "figure study"
+  ],
+  "artist_id": "van-gogh",
+  "_key": "e44fcb616c402440"
+}
