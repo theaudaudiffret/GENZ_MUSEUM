@@ -1,49 +1,49 @@
 # Animart.ai 🏛️
 
-Guide de musée mobile : l'utilisateur **photographie une œuvre**, Claude l'analyse, puis l'app propose une **visite audio personnalisée** (narration ou scène immersive) adaptée au profil du visiteur. Quêtes par artiste et bibliothèque de session incluses.
+A mobile museum guide: the visitor **photographs an artwork**, Claude analyzes it, then the app offers a **personalized audio experience** (narration or immersive scene) tailored to the visitor's profile. Includes per-artist quests and a session library.
 
-Contenu généré en **anglais**. Les clés JSON d'analyse restent en français (`titre_probable`, `artiste_probable`, …).
+All generated content is in **English**. The JSON analysis keys remain in French (`titre_probable`, `artiste_probable`, …).
 
 ---
 
-## Comment ça marche
+## How it works
 
-Diagramme de séquence UML — du scan à l'audio :
+UML sequence diagram — from scan to audio:
 
 ```mermaid
 sequenceDiagram
-  actor Visiteur
+  actor Visitor
   participant App as App (React)
   participant Backend as Backend (FastAPI)
   participant Claude as Claude API
   participant ElevenLabs as ElevenLabs API
 
-  Visiteur->>App: Photographie une œuvre
+  Visitor->>App: Photographs an artwork
   App->>Backend: POST /analyze
   Backend->>Claude: Vision + prompt
-  Claude-->>Backend: Métadonnées (JSON)
-  Backend-->>App: Œuvre + cache status
+  Claude-->>Backend: Metadata (JSON)
+  Backend-->>App: Artwork + cache status
 
-  Visiteur->>App: Écoute narration / scène immersive
-  App->>Backend: POST /narrate (ou /immersive)
-  Backend->>Claude: Script personnalisé
+  Visitor->>App: Listens to narration / immersive scene
+  App->>Backend: POST /narrate (or /immersive)
+  Backend->>Claude: Personalized script
   Backend->>ElevenLabs: TTS
-  Backend-->>App: Audio MP3
-  App->>Visiteur: Lecture audio
+  Backend-->>App: MP3 audio
+  App->>Visitor: Audio playback
 ```
 
-Le profil visiteur (questionnaire → persona `serious` / `fun`) est stocké dans `docs/long_term_memory.md` et pilote le ton de la narration. Les œuvres scannées sont mises en cache dans `analyses/{persona}/` ; la session courante vit dans `docs/session.json`.
+The visitor profile (questionnaire → `serious` / `fun` persona) is stored in `docs/long_term_memory.md` and drives the narration tone. Scanned artworks are cached in `analyses/{persona}/`; the current session lives in `docs/session.json`.
 
-### Diagramme de composants (UML)
+### Component diagram (UML)
 
-Relations entre packages et fichiers du dépôt :
+Relationships between packages and files in the repo:
 
 ```mermaid
 flowchart LR
   subgraph Frontend
-    App[App.tsx] --> PageI[PageI\nScan & résultat]
-    App --> PageII[PageII\nQuêtes]
-    App --> Biblio[PageBiblio\nBibliothèque]
+    App[App.tsx] --> PageI[PageI\nScan & result]
+    App --> PageII[PageII\nQuests]
+    App --> Biblio[PageBiblio\nLibrary]
   end
 
   subgraph Backend
@@ -74,38 +74,38 @@ flowchart LR
 ## Setup
 
 ```bash
-uv sync                       # installe les deps Python
-cd frontend && npm install    # deps frontend
+uv sync                       # install Python dependencies
+cd frontend && npm install    # install frontend dependencies
 ```
 
-Crée un `.env` à la racine :
+Create a `.env` file at the root:
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-...
 ELEVENLABS_API_KEY=sk_...
 ```
 
-`ffmpeg` doit être installé sur la machine (audio immersif). Python ≥ 3.11.
+`ffmpeg` must be installed on the machine (immersive audio). Python ≥ 3.11.
 
 ---
 
-## Lancer
+## Run
 
 ```bash
-cd frontend && npm run build   # une fois, ou après chaque modif UI
+cd frontend && npm run build   # once, or after each UI change
 cd ..
 uv run python -m backend.server
 ```
 
-Le serveur écoute sur le **port 8000** et affiche une URL LAN pour le téléphone (même Wi‑Fi).
+The server listens on **port 8000** and prints a LAN URL for phone access (same Wi‑Fi).
 
-Optionnel — analyser une image en CLI :
+Optional — analyze an image via CLI:
 
 ```bash
-uv run python -m backend.main chemin/vers/photo.jpg
+uv run python -m backend.main path/to/photo.jpg
 ```
 
-Optionnel — synchroniser le catalogue de voix ElevenLabs :
+Optional — sync the ElevenLabs voice catalog:
 
 ```bash
 uv run python -m immersive_scene.sync_voices
@@ -113,44 +113,44 @@ uv run python -m immersive_scene.sync_voices
 
 ---
 
-## Fichiers
+## Files
 
-| Fichier / dossier | Rôle |
+| File / folder | Role |
 |---|---|
-| `backend/server.py` | API FastAPI, routes, fichiers statiques (`frontend/dist`) |
-| `backend/analyzer.py` | Claude vision → JSON œuvre |
-| `backend/dedup.py` | Agent Claude : même œuvre ou nouvelle entrée |
-| `backend/narrator.py` | Script Claude + TTS ElevenLabs |
-| `backend/immersive.py` | Pont vers la scène immersive |
-| `backend/matcher.py` | Nom d'artiste → id musée / quête |
+| `backend/server.py` | FastAPI app, routes, static files (`frontend/dist`) |
+| `backend/analyzer.py` | Claude vision → artwork JSON |
+| `backend/dedup.py` | Claude agent: same artwork or new entry |
+| `backend/narrator.py` | Claude script + ElevenLabs TTS |
+| `backend/immersive.py` | Bridge to the immersive scene pipeline |
+| `backend/matcher.py` | Artist name → museum / quest id |
 | `backend/profile.py` | Questionnaire → persona |
-| `frontend/src/PageI.tsx` | Onboarding, scan, résultat audio |
-| `frontend/src/PageII.tsx` | Quêtes (Louvre, Orsay, Pompidou) |
-| `frontend/src/PageBiblio.tsx` | Bibliothèque de la session |
-| `immersive_scene/` | Pipeline audio immersif multi-voix |
-| `analyses/{serious,fun}/` | Cache partagé par persona (JSON, photos, audio) |
-| `docs/prompt.md` | Prompt d'analyse vision |
-| `docs/narration_prompt.md` | Prompt de narration |
+| `frontend/src/PageI.tsx` | Onboarding, scan, audio result |
+| `frontend/src/PageII.tsx` | Quests (Louvre, Orsay, Pompidou) |
+| `frontend/src/PageBiblio.tsx` | Session library |
+| `immersive_scene/` | Multi-voice immersive audio pipeline |
+| `analyses/{serious,fun}/` | Shared per-persona cache (JSON, photos, audio) |
+| `docs/prompt.md` | Vision analysis prompt |
+| `docs/narration_prompt.md` | Narration prompt |
 
 ---
 
-## Routes API
+## API Routes
 
-| Méthode | Route | Description |
+| Method | Route | Description |
 |---|---|---|
-| `POST` | `/profile` | Enregistre le profil visiteur |
-| `POST` | `/new-profile` | Reset session (cache persona intact) |
-| `POST` | `/analyze` | Photo → JSON œuvre |
+| `POST` | `/profile` | Save visitor profile |
+| `POST` | `/new-profile` | Reset session (persona cache untouched) |
+| `POST` | `/analyze` | Photo → artwork JSON |
 | `POST` | `/narrate` | Narration MP3 |
-| `POST` | `/immersive` | Scène immersive MP3 + sous-titres |
-| `GET` | `/library` | Bibliothèque session |
-| `GET` | `/artwork/{key}` | JSON complet d'une œuvre |
-| `GET` | `/photos/{key}` · `/audio/{key}` · `/immersive-audio/{key}` | Médias |
+| `POST` | `/immersive` | Immersive scene MP3 + captions |
+| `GET` | `/library` | Session library |
+| `GET` | `/artwork/{key}` | Full artwork JSON |
+| `GET` | `/photos/{key}` · `/audio/{key}` · `/immersive-audio/{key}` | Media files |
 
 ---
 
-## À savoir
+## Notes
 
-- Seul `/new-profile` efface la session ; le cache `analyses/` persiste.
-- Chaque scan peut déclencher un appel Claude de dédup si le cache n'est pas vide.
-- Narration et immersif sont **deux modes distincts** — le visiteur en choisit un par œuvre.
+- Only `/new-profile` clears the session; the `analyses/` cache persists.
+- Each scan may trigger an extra Claude dedup call if the cache is non-empty.
+- Narration and immersive are **two distinct modes** — the visitor picks one per artwork.
