@@ -33,6 +33,8 @@ def generate_immersive_scene(
     artist_name: str = "",
     language: str = "English",
     age: str = "adult",
+    visitor_profile: str = "",
+    visit_memory: str = "",
     output_dir: str | Path = "outputs",
 ) -> tuple[Path, list[dict]]:
     """
@@ -58,6 +60,8 @@ def generate_immersive_scene(
             voices.catalog_for_prompt(),
             language=language,
             age=age,
+            visitor_profile=visitor_profile,
+            visit_memory=visit_memory,
         ),
     )
 

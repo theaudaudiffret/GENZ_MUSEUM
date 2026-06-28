@@ -56,12 +56,16 @@ path, captions = generate_immersive_scene(
     "La liberté guidant le peuple",
     "Tableau d'Eugène Delacroix (1830), Révolution de Juillet à Paris...",
     artist_name="Eugène Delacroix",
+    visitor_profile="Persona: serious",
+    visit_memory="Previously visited: The Raft of the Medusa",
 )
 print(path)      # outputs/la_liberte_guidant_le_peuple/final_scene.mp3
 print(captions)  # [{"text": "Le", "start": 2.5, "end": 2.7}, ...]
 ```
 
 Le pipeline ne reçoit volontairement aucun texte de narrateur : Claude travaille directement depuis les informations factuelles de l'œuvre afin d'éviter que le dialogue imite une voix de guide. Il ne fait qu'un seul appel Claude au total pour générer textures, musique, casting et dialogue.
+
+`visitor_profile` et `visit_memory` sont des contextes silencieux : ils ajustent le ton et évitent les répétitions, mais les personnages ne les mentionnent jamais dans leur dialogue.
 
 ## Fichiers
 

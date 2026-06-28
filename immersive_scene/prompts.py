@@ -44,6 +44,8 @@ def get_immersive_content_prompt(
     *,
     language: str = "English",
     age: str = "adult",
+    visitor_profile: str = "",
+    visit_memory: str = "",
 ) -> str:
     """
     Ask for ambient textures, music, casting, and a strictly diegetic dialogue in
@@ -62,6 +64,14 @@ VISITOR CONTEXT (adapt vocabulary and tone of the dialogue accordingly):
 - Language to write the dialogue in: {language}
 - Visitor age: {age}
 - Every spoken line and every delivery tag MUST be in English, even if the source artwork information is in another language.
+
+VISITOR PROFILE:
+{visitor_profile or "No visitor profile available."}
+
+RECENT VISIT MEMORY:
+{visit_memory or "No previous artworks in this visit."}
+
+Use the visitor profile to tune intensity, complexity, and dramatic tone. Use recent visits only as silent creative context to avoid repetition and create thematic continuity. Characters must NEVER mention the museum visit, previous artworks, the visitor profile, or this memory.
 
 PART 1 — AMBIENT TEXTURES (exactly 2)
 Write exactly 2 short sound effects prompts for the ElevenLabs Sound Effects API, each describing ONE single continuous, seamlessly loopable ambient texture (e.g. "wind gusting through fabric and smoke" or "low murmur of a distant crowd") that together evoke the scene depicted in the artwork.

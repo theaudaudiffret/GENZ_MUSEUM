@@ -19,6 +19,7 @@ from backend.analyzer import analyze_artwork
 from backend.dedup import find_existing_artwork
 from backend.immersive import generate_immersive
 from backend.matcher import match_artist
+from backend.memory import remember_artwork, reset_memories
 from backend.narrator import narrate
 from backend.profile import load_persona, load_profile_text, save_profile
 
@@ -28,12 +29,7 @@ ROOT = Path(__file__).parent.parent
 ANALYSES_DIR = ROOT / "analyses"
 ANALYSES_DIR.mkdir(exist_ok=True)
 
-SHORT_TERM_MEMORY = ROOT / "docs" / "short_term_memory.md"
-LONG_TERM_MEMORY = ROOT / "docs" / "long_term_memory.md"
 SESSION_FILE = ROOT / "docs" / "session.json"
-
-SHORT_TERM_INITIAL = "# Short-term memory — recent visits\n\n_(empty — analyzed works will appear here during the visit)_\n"
-LONG_TERM_INITIAL = "# Long-term memory\n\n_(will be filled after the welcome questionnaire)_\n"
 
 
 # ─── Base de données par persona (cache partagé, persistant) ──────────────────
@@ -83,8 +79,7 @@ def _session_add(entry: dict) -> None:
 
 def _reset_session_and_memories() -> None:
     SESSION_FILE.write_text("[]", encoding="utf-8")
-    SHORT_TERM_MEMORY.write_text(SHORT_TERM_INITIAL, encoding="utf-8")
-    LONG_TERM_MEMORY.write_text(LONG_TERM_INITIAL, encoding="utf-8")
+    reset_memories()
 
 
 # ─── Image Wikipedia ──────────────────────────────────────────────────────────
@@ -225,13 +220,14 @@ async def narrate_route(request: Request):
         if key:
             audio_file = pdir / "audio" / f"{key}.mp3"
             if audio_file.exists():
-                return Response(content=audio_file.read_bytes(), media_type="audio/mpeg")
+                audio_bytes = audio_file.read_bytes()
+            else:
+                audio_bytes = await asyncio.to_thread(narrate, data)
+                audio_file.write_bytes(audio_bytes)
+        else:
+            audio_bytes = await asyncio.to_thread(narrate, data)
 
-        audio_bytes = await asyncio.to_thread(narrate, data)
-
-        if key:
-            (pdir / "audio" / f"{key}.mp3").write_bytes(audio_bytes)
-
+        remember_artwork(data)
         return Response(content=audio_bytes, media_type="audio/mpeg")
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -257,6 +253,7 @@ async def immersive_route(request: Request):
                     json.dumps(captions, ensure_ascii=False), encoding="utf-8"
                 )
 
+        remember_artwork(data)
         return JSONResponse({
             "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
             "captions": captions,
@@ -279,6 +276,8 @@ async def library_route():
             "artiste": e.get("artiste"),
             "artist_id": e.get("artist_id"),
             "has_photo": (pdir / "photos" / f"{key}.jpg").exists(),
+            "has_narration": has_narration,
+            "has_immersive": has_immersive,
             "has_audio": has_narration or has_immersive,
             "audio_mode": "narrate" if has_narration else "immersive" if has_immersive else None,
         })

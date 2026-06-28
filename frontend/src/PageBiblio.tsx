@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { MUSEUMS, getArtistById } from './data'
 
+type LibraryAudioMode = 'narrate' | 'immersive'
+
 interface LibraryItem {
   phash: string
   titre: string | null
   artiste: string | null
   artist_id: string | null
   has_photo: boolean
+  has_narration: boolean
+  has_immersive: boolean
   has_audio: boolean
   audio_mode: 'narrate' | 'immersive' | null
 }
@@ -14,7 +18,7 @@ interface LibraryItem {
 export default function PageBiblio() {
   const [items, setItems] = useState<LibraryItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [playingPhash, setPlayingPhash] = useState<string | null>(null)
+  const [playing, setPlaying] = useState<{ phash: string; mode: LibraryAudioMode } | null>(null)
   const [isLoadingAudio, setIsLoadingAudio] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -26,22 +30,22 @@ export default function PageBiblio() {
       .finally(() => setLoading(false))
   }, [])
 
-  function handlePlay(item: LibraryItem) {
-    if (playingPhash === item.phash) {
+  function handlePlay(item: LibraryItem, mode: LibraryAudioMode) {
+    if (playing?.phash === item.phash && playing.mode === mode) {
       audioRef.current?.pause()
-      setPlayingPhash(null)
+      setPlaying(null)
       return
     }
     audioRef.current?.pause()
-    setPlayingPhash(item.phash)
+    setPlaying({ phash: item.phash, mode })
     setIsLoadingAudio(true)
-    const endpoint = item.audio_mode === 'immersive' ? '/immersive-audio' : '/audio'
+    const endpoint = mode === 'immersive' ? '/immersive-audio' : '/audio'
     const audio = new Audio(`${endpoint}/${item.phash}`)
     audioRef.current = audio
     audio.oncanplaythrough = () => setIsLoadingAudio(false)
-    audio.onended = () => setPlayingPhash(null)
-    audio.onerror = () => { setPlayingPhash(null); setIsLoadingAudio(false) }
-    audio.play().catch(() => { setPlayingPhash(null); setIsLoadingAudio(false) })
+    audio.onended = () => setPlaying(null)
+    audio.onerror = () => { setPlaying(null); setIsLoadingAudio(false) }
+    audio.play().catch(() => { setPlaying(null); setIsLoadingAudio(false) })
   }
 
   if (loading) {
@@ -91,7 +95,7 @@ export default function PageBiblio() {
               <ArtworkRow
                 key={item.phash}
                 item={item}
-                active={playingPhash === item.phash}
+                playingMode={playing?.phash === item.phash ? playing.mode : null}
                 isLoadingAudio={isLoadingAudio}
                 accentColor={museum.color}
                 onPlay={handlePlay}
@@ -113,7 +117,7 @@ export default function PageBiblio() {
               <ArtworkRow
                 key={item.phash}
                 item={item}
-                active={playingPhash === item.phash}
+                playingMode={playing?.phash === item.phash ? playing.mode : null}
                 isLoadingAudio={isLoadingAudio}
                 accentColor="#8a8078"
                 onPlay={handlePlay}
@@ -126,13 +130,14 @@ export default function PageBiblio() {
   )
 }
 
-function ArtworkRow({ item, active, isLoadingAudio, accentColor, onPlay }: {
+function ArtworkRow({ item, playingMode, isLoadingAudio, accentColor, onPlay }: {
   item: LibraryItem
-  active: boolean
+  playingMode: LibraryAudioMode | null
   isLoadingAudio: boolean
   accentColor: string
-  onPlay: (item: LibraryItem) => void
+  onPlay: (item: LibraryItem, mode: LibraryAudioMode) => void
 }) {
+  const active = playingMode !== null
   return (
     <div style={{ ...s.item, borderColor: active ? accentColor + '66' : '#e8e2d8' }}>
       {item.has_photo
@@ -145,20 +150,52 @@ function ArtworkRow({ item, active, isLoadingAudio, accentColor, onPlay }: {
       </div>
 
       {item.has_audio && (
-        <button
-          style={{
-            ...s.playBtn,
-            background: active ? accentColor : 'transparent',
-            border: active ? 'none' : '1px solid #e4ddd3',
-          }}
-          onClick={() => onPlay(item)}
-        >
-          <span style={{ color: active ? '#fff' : '#1c1812', fontSize: '.8rem', opacity: active ? 1 : 0.6 }}>
-            {active && isLoadingAudio ? '…' : active ? '⏸' : '▷'}
-          </span>
-        </button>
+        <div style={s.audioActions}>
+          {item.has_narration && (
+            <LibraryAudioButton
+              label="Guide"
+              active={playingMode === 'narrate'}
+              loading={playingMode === 'narrate' && isLoadingAudio}
+              accentColor={accentColor}
+              onClick={() => onPlay(item, 'narrate')}
+            />
+          )}
+          {item.has_immersive && (
+            <LibraryAudioButton
+              label="Scène"
+              active={playingMode === 'immersive'}
+              loading={playingMode === 'immersive' && isLoadingAudio}
+              accentColor={accentColor}
+              onClick={() => onPlay(item, 'immersive')}
+            />
+          )}
+        </div>
       )}
     </div>
+  )
+}
+
+function LibraryAudioButton({ label, active, loading, accentColor, onClick }: {
+  label: string
+  active: boolean
+  loading: boolean
+  accentColor: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      style={{
+        ...s.playBtn,
+        color: active ? '#fff' : '#1c1812',
+        background: active ? accentColor : 'transparent',
+        border: active ? '1px solid transparent' : '1px solid #e4ddd3',
+      }}
+      onClick={onClick}
+    >
+      <span style={{ fontSize: '.65rem', opacity: active ? 1 : 0.6 }}>
+        {loading ? '…' : active ? '⏸' : '▷'} {label}
+      </span>
+    </button>
   )
 }
 
@@ -188,5 +225,6 @@ const s = {
   titre: { fontFamily: PLAYFAIR, fontSize: '.9rem', fontWeight: 400, color: '#1c1812', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
   artiste: { fontFamily: SANS, fontSize: '.7rem', color: '#1c1812', opacity: 0.4, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
 
-  playBtn: { width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s, border .15s' },
+  audioActions: { display: 'flex', flexDirection: 'column' as const, gap: 4, flexShrink: 0 },
+  playBtn: { width: 64, height: 27, borderRadius: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background .2s, border .15s', fontFamily: SANS },
 } as const

@@ -1,7 +1,7 @@
 """Bridge between the app and immersive_scene, matching narrator.narrate()."""
 from immersive_scene import generate_immersive_scene
 
-from backend.narrator import update_short_term_memory
+from backend.memory import load_long_term_memory, load_short_term_memory
 
 
 def _build_artwork_info(data: dict) -> str:
@@ -32,14 +32,13 @@ def _build_artwork_info(data: dict) -> str:
 
 def generate_immersive(data: dict) -> tuple[bytes, list[dict]]:
     artwork_info = _build_artwork_info(data)
+    current_key = str(data.get("_key")) if data.get("_key") else None
 
     audio_path, captions = generate_immersive_scene(
         data.get("titre_probable") or "Artwork",
         artwork_info,
         artist_name=data.get("artiste_probable") or "",
+        visitor_profile=load_long_term_memory(),
+        visit_memory=load_short_term_memory(exclude_key=current_key),
     )
-
-    title = data.get("titre_probable") or "Unknown artwork"
-    artist = data.get("artiste_probable") or "unknown artist"
-    update_short_term_memory(f"{title} by {artist}. {artwork_info}")
     return audio_path.read_bytes(), captions
